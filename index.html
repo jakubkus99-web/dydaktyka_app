@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dydaktyka v6.0 - Prodziekan</title>
+  <title>Dydaktyka v5.0 - Google Calendar</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -28,25 +28,6 @@
     .sync-indicator.offline { background: #ef444422; color: #ef4444; }
     .gcal-link { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; background: #4285f422; color: #4285f4; font-size: 11px; text-decoration: none; cursor: pointer; border: none; }
     .gcal-link:hover { background: #4285f444; }
-    .tag { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; }
-    .priority-high { background: #ef444422; color: #ef4444; }
-    .priority-medium { background: #f59e0b22; color: #f59e0b; }
-    .priority-low { background: #22c55e22; color: #22c55e; }
-    .student-color { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
-    .favorite-star { color: #f59e0b; cursor: pointer; }
-    .favorite-star.inactive { color: #363652; }
-    .task-card { padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid; transition: all 0.2s; }
-    .task-card:hover { transform: translateX(4px); }
-    .task-card.done { opacity: 0.5; }
-    .quick-note { background: #f59e0b11; border: 1px solid #f59e0b33; border-radius: 8px; padding: 12px; }
-    .countdown { font-size: 11px; padding: 2px 6px; border-radius: 4px; }
-    .countdown.urgent { background: #ef444422; color: #ef4444; }
-    .countdown.soon { background: #f59e0b22; color: #f59e0b; }
-    .countdown.ok { background: #22c55e22; color: #22c55e; }
-    .notification-badge { position: absolute; top: -4px; right: -4px; width: 18px; height: 18px; background: #ef4444; color: white; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; }
-    .meetings-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-    .meetings-week-day { min-height: 80px; background: #12121a; border-radius: 6px; padding: 6px; }
-    .meetings-week-header { font-size: 10px; color: #9ca3af; margin-bottom: 4px; text-align: center; }
     .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; }
     .photo-thumb { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; cursor: pointer; }
     .photo-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 2000; }
@@ -82,16 +63,16 @@
     const { useState, useEffect, useMemo, createContext, useContext, useCallback, useRef } = React;
 
     // ==================== FIREBASE CONFIG ====================
-    const firebaseConfig = {
-      apiKey: "AIzaSyCSFhv4FKrilOnLw5yx-41h8spJMwFTSl4",
-      authDomain: "dydaktykaf.firebaseapp.com",
-      projectId: "dydaktykaf",
-      storageBucket: "dydaktykaf.firebasestorage.app",
-      messagingSenderId: "262772827920",
-      appId: "1:262772827920:web:b62ec1c029cf5d01dbe795"
-    };
+   const firebaseConfig = {
+  apiKey: "AIzaSyD-By4TsCkxR8k1OZzItzpQaOYYBhwT-zc",
+  authDomain: "dydaktyka4.firebaseapp.com",
+  projectId: "dydaktyka4",
+  storageBucket: "dydaktyka4.firebasestorage.app",
+  messagingSenderId: "786857550562",
+  appId: "1:786857550562:web:b5bd2863254af3eb3634bb"
+};
 
-    const isFirebaseConfigured = firebaseConfig.apiKey !== "TWOJ_API_KEY" && firebaseConfig.apiKey.length > 10;
+    const isFirebaseConfigured = firebaseConfig.apiKey !== "TWOJ_API_KEY";
     let db = null, storage = null, auth = null, googleProvider = null;
 
     if (isFirebaseConfigured) {
@@ -140,37 +121,6 @@
       { id: 'email4', name: 'Brak kontaktu', subject: 'Kontakt w sprawie pracy', body: 'Szanowny/a {name},\n\nDawno nie mieliśmy kontaktu w sprawie Twojej pracy.\n\nProszę o informację na jakim etapie jesteś.\n\nPozdrawiam' }
     ];
 
-    const DEFAULT_STUDENT_TAGS = [
-      { id: 'tag1', name: 'Pilne', color: '#ef4444' },
-      { id: 'tag2', name: 'Problematyczny', color: '#f59e0b' },
-      { id: 'tag3', name: 'Wyróżniający', color: '#22c55e' },
-      { id: 'tag4', name: 'Zagraniczny', color: '#3b82f6' },
-      { id: 'tag5', name: 'Indywidualny tok', color: '#8b5cf6' }
-    ];
-
-    const STUDENT_COLORS = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#ec4899', '#64748b'];
-
-    const TASK_CATEGORIES = [
-      { id: 'students', name: 'Studenci', icon: '🎓' },
-      { id: 'documents', name: 'Dokumenty', icon: '📄' },
-      { id: 'meetings', name: 'Spotkania', icon: '🤝' },
-      { id: 'commissions', name: 'Komisje', icon: '👥' },
-      { id: 'reports', name: 'Raporty', icon: '📊' },
-      { id: 'other', name: 'Inne', icon: '📌' }
-    ];
-
-    const RECURRENCE_OPTIONS = [
-      { id: 'none', name: 'Bez powtórzeń' },
-      { id: 'daily', name: 'Codziennie' },
-      { id: 'weekly', name: 'Co tydzień' },
-      { id: 'biweekly', name: 'Co 2 tygodnie' },
-      { id: 'monthly', name: 'Co miesiąc' },
-      { id: 'semester', name: 'Co semestr' }
-    ];
-
-    // Notification sound (base64 encoded short beep)
-    const NOTIFICATION_SOUND = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2Coverage...';
-
     // ==================== UTILITIES ====================
     const genId = () => Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
     const fmtDate = d => d ? new Date(d).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
@@ -180,56 +130,6 @@
     const isToday = d => new Date(d).toDateString() === new Date().toDateString();
     const isPast = d => new Date(d) < new Date() && !isToday(d);
     const isSameDay = (a, b) => new Date(a).toDateString() === new Date(b).toDateString();
-    const daysUntil = d => Math.ceil((new Date(d) - new Date()) / 86400000);
-    
-    // Countdown display
-    const getCountdown = (date, semesterEnd) => {
-      const days = daysUntil(date || semesterEnd);
-      if (days < 0) return { text: `${Math.abs(days)} dni temu`, class: 'urgent' };
-      if (days === 0) return { text: 'Dziś!', class: 'urgent' };
-      if (days <= 7) return { text: `${days} dni`, class: 'urgent' };
-      if (days <= 30) return { text: `${days} dni`, class: 'soon' };
-      return { text: `${days} dni`, class: 'ok' };
-    };
-
-    // Calculate next occurrence for recurring tasks
-    const getNextOccurrence = (task) => {
-      if (!task.recurrence || task.recurrence === 'none') return null;
-      const lastDone = task.lastCompleted ? new Date(task.lastCompleted) : new Date(task.date);
-      const next = new Date(lastDone);
-      switch (task.recurrence) {
-        case 'daily': next.setDate(next.getDate() + 1); break;
-        case 'weekly': next.setDate(next.getDate() + 7); break;
-        case 'biweekly': next.setDate(next.getDate() + 14); break;
-        case 'monthly': next.setMonth(next.getMonth() + 1); break;
-        case 'semester': next.setMonth(next.getMonth() + 6); break;
-      }
-      return next;
-    };
-
-    // Play notification sound
-    const playNotificationSound = () => {
-      try {
-        const audio = new Audio('data:audio/wav;base64,UklGRl9vT19teleVmZmZmZkA');
-        audio.volume = 0.3;
-        audio.play().catch(() => {});
-      } catch (e) {}
-    };
-
-    // Request notification permission
-    const requestNotificationPermission = async () => {
-      if ('Notification' in window && Notification.permission === 'default') {
-        await Notification.requestPermission();
-      }
-    };
-
-    // Show browser notification
-    const showBrowserNotification = (title, body) => {
-      if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification(title, { body, icon: '📚' });
-        playNotificationSound();
-      }
-    };
 
     // Google Calendar link generator
     const generateGCalLink = (event) => {
@@ -255,33 +155,38 @@
             const workbook = XLSX.read(data, { type: 'array' });
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
             const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-            if (!json || !json.length) { resolve([]); return; }
+            if (!json || !json.length) { reject(new Error('Plik jest pusty')); return; }
             let headerRow = 0;
             for (let i = 0; i < Math.min(10, json.length); i++) {
               const row = json[i];
               if (!row || !Array.isArray(row)) continue;
               const rowLower = row.map(c => String(c || '').toLowerCase());
-              if (rowLower.some(c => c.includes('nazwisko') || c.includes('imię') || c.includes('name'))) { headerRow = i; break; }
+              if (rowLower.some(c => c && typeof c === 'string' && (c.includes('nazwisko') || c.includes('imię') || c.includes('name') || c.includes('student')))) { headerRow = i; break; }
             }
             const headerRowData = json[headerRow];
-            if (!headerRowData || !Array.isArray(headerRowData)) { resolve([]); return; }
+            if (!headerRowData || !Array.isArray(headerRowData)) { reject(new Error('Nie znaleziono nagłówków w pliku')); return; }
             const headers = headerRowData.map(h => String(h || '').toLowerCase().trim());
-            const nameIdx = headers.findIndex(h => h.includes('nazwisko') || h.includes('imiona') || h === 'name');
-            const firstNameIdx = headers.findIndex(h => h.includes('imię') || h.includes('imiona') || h === 'first');
-            const emailIdx = headers.findIndex(h => h.includes('email') || h.includes('mail'));
+            const nameIdx = headers.findIndex(h => h && (h.includes('nazwisko') || h === 'name' || h === 'student'));
+            const firstNameIdx = headers.findIndex(h => h && (h.includes('imię') || h.includes('imiona') || h === 'first'));
+            const emailIdx = headers.findIndex(h => h && (h.includes('email') || h.includes('mail')));
+            const fullNameIdx = headers.findIndex(h => h && (h.includes('imię i nazwisko') || h.includes('imie i nazwisko') || h === 'name' || h === 'full name'));
             const students = [];
             for (let i = headerRow + 1; i < json.length; i++) {
               const row = json[i];
               if (!row || !Array.isArray(row) || !row.length) continue;
               let name = '';
-              if (nameIdx >= 0) name = String(row[nameIdx] || '');
-              if (firstNameIdx >= 0 && firstNameIdx !== nameIdx) {
-                const firstName = String(row[firstNameIdx] || '');
-                name = firstName ? (firstName + ' ' + name).trim() : name;
+              if (fullNameIdx >= 0 && row[fullNameIdx]) {
+                name = String(row[fullNameIdx] || '').trim();
+              } else if (nameIdx >= 0 || firstNameIdx >= 0) {
+                const lastName = nameIdx >= 0 ? String(row[nameIdx] || '').trim() : '';
+                const firstName = firstNameIdx >= 0 ? String(row[firstNameIdx] || '').trim() : '';
+                name = [firstName, lastName].filter(Boolean).join(' ').trim();
               }
+              if (!name && row[0]) name = String(row[0] || '').trim();
               if (!name) continue;
-              students.push({ id: genId(), name: name.trim(), email: emailIdx >= 0 ? String(row[emailIdx] || '') : '', topic: '', stage: 'stage1', notes: '', meetings: [], stageHistory: [{ date: new Date(), stageId: 'stage1' }] });
+              students.push({ id: genId(), name, email: emailIdx >= 0 ? String(row[emailIdx] || '').trim() : '', topic: '', stage: 'stage1', notes: '', meetings: [], stageHistory: [{ date: new Date(), stageId: 'stage1' }] });
             }
+            if (!students.length) { reject(new Error('Nie znaleziono żadnych studentów w pliku')); return; }
             resolve(students);
           } catch (err) { reject(err); }
         };
@@ -698,238 +603,6 @@
       );
     };
 
-    // ==================== NEW COMPONENTS ====================
-    const FavoriteStar = ({ isFavorite, onClick }) => (
-      <span className={`favorite-star ${isFavorite ? '' : 'inactive'}`} onClick={e => { e.stopPropagation(); onClick(); }}>
-        {isFavorite ? '★' : '☆'}
-      </span>
-    );
-
-    const StudentColorDot = ({ color }) => <div className="student-color" style={{ background: color || '#64748b' }} />;
-
-    const StudentTagBadge = ({ tag, onRemove }) => (
-      <span className="tag" style={{ background: tag.color + '22', color: tag.color }}>
-        {tag.name}
-        {onRemove && <span onClick={onRemove} style={{ cursor: 'pointer', marginLeft: 2 }}>×</span>}
-      </span>
-    );
-
-    const CountdownBadge = ({ date, semesterEnd }) => {
-      const countdown = getCountdown(date, semesterEnd);
-      return <span className={`countdown ${countdown.class}`}>{countdown.text}</span>;
-    };
-
-    const MeetingsWeekView = ({ students, currentDate }) => {
-      const t = themes[useTheme().theme];
-      const weekDates = getWeekDates(currentDate);
-      const dayNames = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb', 'Nd'];
-      
-      const allMeetings = students.flatMap(s => 
-        (s.meetings || []).map(m => ({ ...m, studentName: s.name, studentColor: s.color }))
-      );
-      
-      return (
-        <div>
-          <h3 style={{ margin: '0 0 12px', fontSize: 14, color: t.text }}>📅 Spotkania w tygodniu</h3>
-          <div className="meetings-week">
-            {weekDates.map((date, i) => {
-              const dayMeetings = allMeetings.filter(m => isSameDay(m.date, date));
-              return (
-                <div key={i} className="meetings-week-day" style={{ background: isToday(date) ? t.primaryBg : t.bgAlt }}>
-                  <div className="meetings-week-header" style={{ color: isToday(date) ? t.primary : t.textDim }}>
-                    {dayNames[i]} {date.getDate()}
-                  </div>
-                  {dayMeetings.map((m, j) => (
-                    <div key={j} style={{ fontSize: 10, padding: '3px 5px', marginBottom: 2, borderRadius: 4, background: m.studentColor ? m.studentColor + '22' : t.bg, borderLeft: `2px solid ${m.studentColor || t.primary}` }}>
-                      {m.studentName}
-                    </div>
-                  ))}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      );
-    };
-
-    const QuickNotes = ({ notes, onChange }) => {
-      const t = themes[useTheme().theme];
-      return (
-        <div className="quick-note">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <span style={{ fontSize: 12, fontWeight: 600, color: t.warning }}>📝 Szybkie notatki</span>
-          </div>
-          <textarea 
-            value={notes} 
-            onChange={e => onChange(e.target.value)}
-            placeholder="Zapisuj tutaj szybkie notatki..."
-            style={{ width: '100%', minHeight: 80, padding: 8, border: 'none', background: 'transparent', color: t.text, fontSize: 13, resize: 'vertical', outline: 'none' }}
-          />
-        </div>
-      );
-    };
-
-    const TaskCard = ({ task, categories, onToggle, onEdit, onDelete }) => {
-      const t = themes[useTheme().theme];
-      const cat = categories.find(c => c.id === task.category);
-      const priorityColors = { high: '#ef4444', medium: '#f59e0b', low: '#22c55e' };
-      const isOverdue = !task.done && isPast(task.date);
-      
-      return (
-        <div 
-          className={`task-card ${task.done ? 'done' : ''}`} 
-          style={{ 
-            background: t.bgAlt, 
-            borderLeftColor: priorityColors[task.priority] || t.primary,
-            opacity: task.done ? 0.5 : 1
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-            <button 
-              onClick={() => onToggle(task.id)} 
-              style={{ 
-                width: 20, height: 20, borderRadius: '50%', 
-                border: `2px solid ${task.done ? t.success : t.textDim}`, 
-                background: task.done ? t.success : 'transparent', 
-                cursor: 'pointer', color: 'white', fontSize: 10, flexShrink: 0, marginTop: 2
-              }}
-            >
-              {task.done && '✓'}
-            </button>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 500, fontSize: 13, textDecoration: task.done ? 'line-through' : 'none', color: t.text, marginBottom: 4 }}>
-                {task.title}
-              </div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', fontSize: 11 }}>
-                {cat && <span style={{ color: t.textDim }}>{cat.icon} {cat.name}</span>}
-                <span style={{ color: isOverdue ? t.danger : t.textDim }}>📅 {fmtDate(task.date)}</span>
-                {task.recurrence && task.recurrence !== 'none' && <span style={{ color: t.primary }}>🔄</span>}
-                {task.priority && <span className={`tag priority-${task.priority}`}>{task.priority === 'high' ? '❗' : task.priority === 'medium' ? '❕' : '▪️'}</span>}
-              </div>
-              {task.notes && <div style={{ fontSize: 11, color: t.textMuted, marginTop: 4 }}>{task.notes.slice(0, 60)}...</div>}
-            </div>
-            <div style={{ display: 'flex', gap: 4 }}>
-              <button onClick={() => onEdit(task)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.textDim, fontSize: 12 }}>✏️</button>
-              <button onClick={() => onDelete(task.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.danger, fontSize: 12 }}>🗑️</button>
-            </div>
-          </div>
-        </div>
-      );
-    };
-
-    const ProdziekanView = ({ tasks, quickNotes, onTaskToggle, onTaskEdit, onTaskDelete, onAddTask, onQuickNotesChange, semesterEnd }) => {
-      const t = themes[useTheme().theme];
-      const [filter, setFilter] = useState('active');
-      const [categoryFilter, setCategoryFilter] = useState('all');
-      
-      const today = new Date();
-      const todayTasks = tasks.filter(task => !task.done && isToday(task.date));
-      const overdueTasks = tasks.filter(task => !task.done && isPast(task.date));
-      const upcomingTasks = tasks.filter(task => !task.done && !isPast(task.date) && !isToday(task.date));
-      
-      const filtered = useMemo(() => {
-        let result = tasks;
-        if (filter === 'active') result = result.filter(t => !t.done);
-        if (filter === 'done') result = result.filter(t => t.done);
-        if (categoryFilter !== 'all') result = result.filter(t => t.category === categoryFilter);
-        return result.sort((a, b) => {
-          if (a.done !== b.done) return a.done ? 1 : -1;
-          const priorityOrder = { high: 0, medium: 1, low: 2 };
-          if (priorityOrder[a.priority] !== priorityOrder[b.priority]) return priorityOrder[a.priority] - priorityOrder[b.priority];
-          return new Date(a.date) - new Date(b.date);
-        });
-      }, [tasks, filter, categoryFilter]);
-
-      const daysToEnd = daysUntil(semesterEnd);
-
-      return (
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
-            <h2 style={{ color: t.text, display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 28 }}>🏛️</span>
-              <div>
-                <div>Prodziekan</div>
-                <div style={{ fontSize: 12, fontWeight: 400, color: t.textMuted }}>
-                  {today.toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long' })}
-                  <span style={{ marginLeft: 10 }} className={`countdown ${daysToEnd < 30 ? 'urgent' : daysToEnd < 60 ? 'soon' : 'ok'}`}>
-                    {daysToEnd} dni do końca semestru
-                  </span>
-                </div>
-              </div>
-            </h2>
-            <Button onClick={onAddTask}>➕ Nowe zadanie</Button>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 20 }}>
-            <StatCard value={overdueTasks.length} label="Zaległych" color={overdueTasks.length > 0 ? t.danger : t.textDim} icon="⚠️" />
-            <StatCard value={todayTasks.length} label="Na dziś" color={t.warning} icon="📅" />
-            <StatCard value={upcomingTasks.length} label="Nadchodzących" color={t.primary} icon="🔜" />
-            <StatCard value={tasks.filter(t => t.done).length} label="Ukończonych" color={t.success} icon="✓" />
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20 }}>
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
-                <div style={{ display: 'flex', gap: 4 }}>
-                  {['active', 'done', 'all'].map(f => (
-                    <button key={f} onClick={() => setFilter(f)} style={{ 
-                      padding: '6px 12px', borderRadius: 6, border: `1px solid ${t.border}`, 
-                      background: filter === f ? t.primary : 'transparent', 
-                      color: filter === f ? 'white' : t.textMuted, cursor: 'pointer', fontSize: 12 
-                    }}>
-                      {f === 'active' ? 'Aktywne' : f === 'done' ? 'Ukończone' : 'Wszystkie'}
-                    </button>
-                  ))}
-                </div>
-                <select 
-                  value={categoryFilter} 
-                  onChange={e => setCategoryFilter(e.target.value)}
-                  style={{ padding: '6px 12px', borderRadius: 6, border: `1px solid ${t.border}`, background: t.bgAlt, color: t.text, fontSize: 12 }}
-                >
-                  <option value="all">Wszystkie kategorie</option>
-                  {TASK_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
-                </select>
-              </div>
-
-              {filtered.length === 0 ? (
-                <Card style={{ textAlign: 'center', padding: 40, color: t.textDim }}>
-                  {filter === 'active' ? '🎉 Brak aktywnych zadań!' : 'Brak zadań'}
-                </Card>
-              ) : (
-                filtered.map(task => (
-                  <TaskCard 
-                    key={task.id} 
-                    task={task} 
-                    categories={TASK_CATEGORIES}
-                    onToggle={onTaskToggle}
-                    onEdit={onTaskEdit}
-                    onDelete={onTaskDelete}
-                  />
-                ))
-              )}
-            </div>
-
-            <div>
-              <QuickNotes notes={quickNotes} onChange={onQuickNotesChange} />
-              
-              <Card style={{ marginTop: 16 }}>
-                <h4 style={{ margin: '0 0 12px', fontSize: 13, color: t.text }}>📊 Kategorie</h4>
-                {TASK_CATEGORIES.map(cat => {
-                  const count = tasks.filter(t => t.category === cat.id && !t.done).length;
-                  return (
-                    <div key={cat.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: `1px solid ${t.border}` }}>
-                      <span style={{ fontSize: 12, color: t.textMuted }}>{cat.icon} {cat.name}</span>
-                      <Badge color={count > 0 ? t.primary : t.textDim}>{count}</Badge>
-                    </div>
-                  );
-                })}
-              </Card>
-            </div>
-          </div>
-        </div>
-      );
-    };
-
     // ==================== VIEWS ====================
     const TodayView = ({ events, reminders, students, stages, inactivityDays, onEventClick, onReminderClick, onStudentClick }) => {
       const t = themes[useTheme().theme];
@@ -990,13 +663,12 @@
       );
     };
 
-    const DashboardView = ({ events, students, reminders, stages, semesterDates, currentDate }) => {
+    const DashboardView = ({ events, students, reminders, stages, semesterDates }) => {
       const t = themes[useTheme().theme];
       const stats = useMemo(() => {
         const wd = getWeekDates(new Date());
         const defended = students.filter(s => s.stage === 'stage7').length;
         const totalMeet = students.reduce((s, x) => s + (x.meetings?.length || 0), 0);
-        const favorites = students.filter(s => s.favorite).length;
         return {
           weekEvents: events.filter(e => new Date(e.start) >= wd[0] && new Date(e.start) <= wd[6]).length,
           students: students.length,
@@ -1004,8 +676,7 @@
           defendedPct: students.length ? Math.round(defended / students.length * 100) : 0,
           avgMeet: students.length ? (totalMeet / students.length).toFixed(1) : 0,
           overdue: reminders.filter(r => !r.done && isPast(r.date)).length,
-          totalMeet,
-          favorites
+          totalMeet
         };
       }, [events, students, reminders]);
       const stageStats = useMemo(() => { const r = {}; stages.forEach(s => r[s.id] = 0); students.forEach(s => { if (r[s.stage] !== undefined) r[s.stage]++; }); return r; }, [students, stages]);
@@ -1013,13 +684,13 @@
       return (
         <div>
           <h2 style={{ color: t.text, marginBottom: 24 }}>📊 Dashboard</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 14, marginBottom: 28 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 14, marginBottom: 28 }}>
             <StatCard value={stats.weekEvents} label="Zajęć w tygodniu" icon="📅" color={t.primary} />
             <StatCard value={stats.students} label="Osób" icon="🎓" color={t.success} />
             <StatCard value={`${stats.defended} (${stats.defendedPct}%)`} label="Obronionych" icon="🎉" color={t.success} />
             <StatCard value={stats.avgMeet} label="Śr. spotkań" icon="🤝" />
             <StatCard value={stats.overdue} label="Zaległych" icon="⚠️" color={stats.overdue > 0 ? t.danger : t.textDim} />
-            <StatCard value={stats.favorites} label="Ulubionych" icon="⭐" color={t.warning} />
+            <StatCard value={stats.totalMeet} label="Spotkań łącznie" icon="📋" />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
             <Card>
@@ -1031,9 +702,6 @@
                   <div style={{ height: 6, background: t.bgAlt, borderRadius: 3 }}><div style={{ height: '100%', width: `${pct}%`, background: st.color, borderRadius: 3 }} /></div>
                 </div>;
               })}
-            </Card>
-            <Card>
-              <MeetingsWeekView students={students} currentDate={currentDate || new Date()} />
             </Card>
             <Card>
               <h3 style={{ margin: '0 0 16px', fontSize: 14, color: t.text }}>Obciążenie (3 mies.)</h3>
@@ -1064,7 +732,7 @@
                 {weekDates.map((date, di) => {
                   const dayEvents = filtered.filter(e => isSameDay(e.start, date) && new Date(e.start).getHours() === hour);
                   return <div key={di} style={{ borderTop: `1px solid ${t.border}`, borderLeft: `1px solid ${t.border}`, height: 44, padding: 2 }}>
-                    {dayEvents.map(event => { const subj = getSubjectById(event.subjectId); const col = subj?.color || t.primary; return <div key={event.id} onClick={() => onEventClick(event)} style={{ background: col + '33', borderLeft: `2px solid ${col}`, padding: '2px 4px', borderRadius: 2, fontSize: 9, cursor: 'pointer', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}><span style={{ fontWeight: 600, color: col }}>{fmtTime(event.start)}</span> {event.title}</div>; })}
+                    {dayEvents.map(event => { const subj = getSubjectById(event.subjectId); const col = subj?.color || t.primary; return <div key={event.id} onClick={() => onEventClick(event)} style={{ background: col + '33', borderLeft: `2px solid ${col}`, padding: '2px 4px', borderRadius: 2, fontSize: 11, cursor: 'pointer', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}><span style={{ fontWeight: 600, color: col }}>{fmtTime(event.start)}</span> {event.title}</div>; })}
                   </div>;
                 })}
               </React.Fragment>
@@ -1087,7 +755,7 @@
               const dayEvents = filtered.filter(e => isSameDay(e.start, date));
               return <div key={i} style={{ minHeight: 70, padding: 4, borderRight: (i + 1) % 7 ? `1px solid ${t.border}` : 'none', borderBottom: `1px solid ${t.border}`, background: isToday(date) ? t.primaryBg : 'transparent', opacity: curr ? 1 : 0.4 }}>
                 <div style={{ fontSize: 12, fontWeight: isToday(date) ? 700 : 400, color: isToday(date) ? t.primary : t.textMuted, marginBottom: 2 }}>{date.getDate()}</div>
-                {dayEvents.slice(0, 3).map(e => { const subj = getSubjectById(e.subjectId); const col = subj?.color || t.primary; return <div key={e.id} onClick={() => onEventClick(e)} style={{ background: col + '33', borderLeft: `2px solid ${col}`, padding: '1px 3px', borderRadius: 2, fontSize: 8, cursor: 'pointer', marginBottom: 1, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{e.title}</div>; })}
+                {dayEvents.slice(0, 3).map(e => { const subj = getSubjectById(e.subjectId); const col = subj?.color || t.primary; return <div key={e.id} onClick={() => onEventClick(e)} style={{ background: col + '33', borderLeft: `2px solid ${col}`, padding: '2px 4px', borderRadius: 2, fontSize: 11, cursor: 'pointer', marginBottom: 2, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}><span style={{ fontWeight: 600, color: col, marginRight: 3 }}>{fmtTime(e.start)}</span>{e.title}</div>; })}
                 {dayEvents.length > 3 && <div style={{ fontSize: 8, color: t.textDim }}>+{dayEvents.length - 3}</div>}
               </div>;
             })}
@@ -1109,7 +777,7 @@
               const isCurrent = new Date() >= week.start && new Date() <= week.end;
               return <div key={i} style={{ display: 'flex', marginBottom: 2, background: isCurrent ? t.primaryBg : 'transparent', borderRadius: 4 }}>
                 <div style={{ width: 100, padding: '4px 8px', fontSize: 10, color: isCurrent ? t.primary : t.textDim, fontWeight: isCurrent ? 600 : 400, background: t.bgAlt, borderRadius: '4px 0 0 4px' }}>T{week.num}: {fmtDate(week.start).slice(0, 5)}</div>
-                <div style={{ flex: 1, display: 'flex', gap: 2, padding: 2, flexWrap: 'wrap' }}>{weekEvents.map(e => { const subj = getSubjectById(e.subjectId); return <div key={e.id} onClick={() => onEventClick(e)} style={{ background: subj?.color || t.primary, padding: '2px 5px', borderRadius: 2, fontSize: 9, cursor: 'pointer', color: 'white' }}>{e.title}</div>; })}</div>
+                <div style={{ flex: 1, display: 'flex', gap: 3, padding: 2, flexWrap: 'wrap' }}>{weekEvents.map(e => { const subj = getSubjectById(e.subjectId); return <div key={e.id} onClick={() => onEventClick(e)} style={{ background: subj?.color || t.primary, padding: '3px 6px', borderRadius: 3, fontSize: 12, cursor: 'pointer', color: 'white' }}><span style={{ opacity: 0.85, marginRight: 3 }}>{fmtTime(e.start)}</span>{e.title}</div>; })}</div>
               </div>;
             })}
           </div>
@@ -1146,7 +814,7 @@
     };
 
     // ==================== SEMINAR & REMINDERS VIEWS ====================
-    const SeminarView = ({ students, allStudents, search, setSearch, stageFilter, setStageFilter, stages, onAddStudent, onEditStudent, onDeleteStudent, onAddMeeting, onDeleteMeeting, onViewTimeline, onExportPDF, onEditStages, onExportCSV, onImportCSV, onSendEmail, onToggleFavorite, onUpdateStudentColor, onUpdateStudentTags, inactivityDays, semesterEnd, studentTags }) => {
+    const SeminarView = ({ students, allStudents, search, setSearch, stageFilter, setStageFilter, stages, onAddStudent, onEditStudent, onDeleteStudent, onAddMeeting, onDeleteMeeting, onViewTimeline, onExportPDF, onEditStages, onExportCSV, onImportCSV, onSendEmail, inactivityDays }) => {
       const t = themes[useTheme().theme];
       const [expanded, setExpanded] = useState(null);
       const stats = useMemo(() => { const s = {}; stages.forEach(st => s[st.id] = 0); allStudents.forEach(st => { if (s[st.stage] !== undefined) s[st.stage]++; }); return s; }, [allStudents, stages]);
@@ -1154,7 +822,7 @@
       return (
         <div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: 8, marginBottom: 18 }}>
-            {stages.sort((a, b) => a.order - b.order).map(st => <Card key={st.id} onClick={() => setStageFilter(stageFilter === st.id ? 'all' : st.id)} style={{ padding: 10, borderColor: stageFilter === st.id ? st.color : t.border, background: stageFilter === st.id ? st.color + '11' : t.bg, cursor: 'pointer' }}><div style={{ fontSize: 18, fontWeight: 700, color: st.color }}>{stats[st.id]}</div><div style={{ fontSize: 9, color: t.textMuted }}>{st.label}</div></Card>)}
+            {stages.sort((a, b) => a.order - b.order).map(st => <Card key={st.id} onClick={() => setStageFilter(stageFilter === st.id ? 'all' : st.id)} style={{ padding: 12, borderColor: stageFilter === st.id ? st.color : t.border, background: stageFilter === st.id ? st.color + '11' : t.bg, cursor: 'pointer' }}><div style={{ fontSize: 20, fontWeight: 700, color: st.color }}>{stats[st.id]}</div><div style={{ fontSize: 13, color: t.textMuted, fontWeight: 500 }}>{st.label}</div></Card>)}
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, gap: 10, flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', gap: 8, flex: 1 }}>
@@ -1169,29 +837,20 @@
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {!students.length ? <Card style={{ textAlign: 'center', padding: 28, color: t.textDim }}>{!allStudents.length ? 'Brak osób.' : 'Brak wyników.'}</Card> : students.sort((a, b) => { if (a.favorite && !b.favorite) return -1; if (!a.favorite && b.favorite) return 1; return 0; }).map(student => {
+            {!students.length ? <Card style={{ textAlign: 'center', padding: 28, color: t.textDim }}>{!allStudents.length ? 'Brak osób.' : 'Brak wyników.'}</Card> : students.map(student => {
               const stage = stages.find(s => s.id === student.stage);
               const isExp = expanded === student.id;
               const lastMeeting = student.meetings?.length ? student.meetings.sort((a, b) => new Date(b.date) - new Date(a.date))[0] : null;
               const daysNo = lastMeeting ? daysSince(lastMeeting.date) : null;
               const isInactive = daysNo !== null && daysNo > inactivityDays;
-              const countdown = getCountdown(student.defenseDate, semesterEnd);
-              const sTags = (student.tags || []).map(tid => (studentTags || DEFAULT_STUDENT_TAGS).find(t => t.id === tid)).filter(Boolean);
               return (
-                <Card key={student.id} style={{ padding: 0, borderColor: isInactive ? t.warning : t.border, borderLeftWidth: 4, borderLeftColor: student.color || stage?.color || t.border }}>
+                <Card key={student.id} style={{ padding: 0, borderColor: isInactive ? t.warning : t.border }}>
                   <div onClick={() => setExpanded(isExp ? null : student.id)} style={{ padding: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <FavoriteStar isFavorite={student.favorite} onClick={() => onToggleFavorite(student.id)} />
-                    <div style={{ width: 34, height: 34, borderRadius: '50%', background: student.color ? student.color + '33' : stage?.color + '33', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, color: student.color || stage?.color, fontSize: 12, flexShrink: 0 }}>{student.name.split(' ').map(n => n[0]).join('')}</div>
+                    <div style={{ width: 34, height: 34, borderRadius: '50%', background: stage?.color + '33', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, color: stage?.color, fontSize: 12, flexShrink: 0 }}>{student.name.split(' ').map(n => n[0]).join('')}</div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 600, marginBottom: 2, display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, flexWrap: 'wrap' }}>
-                        {student.name}
-                        {isInactive && <span style={{ fontSize: 9, padding: '2px 5px', borderRadius: 8, background: t.warning + '22', color: t.warning }}>⚠️ {daysNo}d</span>}
-                        {student.voiceNotes?.length > 0 && <span style={{ fontSize: 10 }}>🎤</span>}
-                        {sTags.map(tag => <StudentTagBadge key={tag.id} tag={tag} />)}
-                      </div>
+                      <div style={{ fontWeight: 600, marginBottom: 2, display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}>{student.name}{isInactive && <span style={{ fontSize: 9, padding: '2px 5px', borderRadius: 8, background: t.warning + '22', color: t.warning }}>⚠️ {daysNo}d</span>}{student.voiceNotes?.length > 0 && <span style={{ fontSize: 10 }}>🎤</span>}</div>
                       <div style={{ fontSize: 11, color: t.textMuted, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{student.topic || '—'}</div>
                     </div>
-                    <CountdownBadge date={student.defenseDate} semesterEnd={semesterEnd} />
                     <Badge color={stage?.color}>{stage?.label}</Badge>
                     <div style={{ transform: isExp ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s', color: t.textDim }}>▼</div>
                   </div>
@@ -1201,20 +860,6 @@
                         <div>
                           <h4 style={{ margin: '0 0 8px', color: t.textMuted, fontSize: 10, textTransform: 'uppercase' }}>Informacje</h4>
                           {student.email && <div style={{ marginBottom: 4, fontSize: 12 }}>📧 <a href={`mailto:${student.email}`} style={{ color: t.primary }}>{student.email}</a></div>}
-                          {student.defenseDate && <div style={{ marginBottom: 4, fontSize: 12, color: t.textMuted }}>🎯 Obrona: {fmtDate(student.defenseDate)} <CountdownBadge date={student.defenseDate} semesterEnd={semesterEnd} /></div>}
-                          <div style={{ marginBottom: 8 }}>
-                            <span style={{ fontSize: 11, color: t.textDim, marginRight: 6 }}>Kolor:</span>
-                            {STUDENT_COLORS.map(c => <button key={c} onClick={() => onUpdateStudentColor(student.id, c)} style={{ width: 16, height: 16, borderRadius: '50%', background: c, border: student.color === c ? '2px solid white' : '2px solid transparent', cursor: 'pointer', marginRight: 2 }} />)}
-                          </div>
-                          <div style={{ marginBottom: 8 }}>
-                            <span style={{ fontSize: 11, color: t.textDim, marginRight: 6 }}>Tagi:</span>
-                            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
-                              {(studentTags || DEFAULT_STUDENT_TAGS).map(tag => {
-                                const isActive = (student.tags || []).includes(tag.id);
-                                return <button key={tag.id} onClick={() => onUpdateStudentTags(student.id, tag.id)} style={{ padding: '2px 8px', borderRadius: 12, fontSize: 10, background: isActive ? tag.color + '33' : t.bgAlt, color: isActive ? tag.color : t.textDim, border: '1px solid ' + (isActive ? tag.color : t.border), cursor: 'pointer' }}>{tag.name}</button>;
-                              })}
-                            </div>
-                          </div>
                           {student.notes && <div style={{ fontSize: 12, color: t.textMuted, whiteSpace: 'pre-wrap', marginBottom: 10 }}>{student.notes}</div>}
                           <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                             <Button onClick={() => onEditStudent(student)} variant="secondary" size="sm">✏️</Button>
@@ -1327,27 +972,7 @@
 
     const EventModal = ({ isOpen, onClose, event, subjects, onSave, onDelete, onUploadPhoto, onDeletePhoto }) => { const [form, setForm] = useState({ title: '', start: '', end: '', location: '', subjectId: '', plan: '', notes: '', photos: [] }); const [uploading, setUploading] = useState(false); useEffect(() => { if (event) setForm({ ...event, photos: event.photos || [], start: event.start ? new Date(event.start).toISOString().slice(0, 16) : '', end: event.end ? new Date(event.end).toISOString().slice(0, 16) : '' }); else { const now = new Date(); setForm({ title: '', start: now.toISOString().slice(0, 16), end: new Date(now.getTime() + 90 * 60000).toISOString().slice(0, 16), location: '', subjectId: '', plan: '', notes: '', photos: [] }); }}, [event]); const handlePhoto = async f => { if (!event?.id) { alert('Zapisz najpierw'); return; } setUploading(true); const url = await onUploadPhoto(f, `events/${event.id}`); if (url) setForm(fo => ({ ...fo, photos: [...fo.photos, url] })); setUploading(false); }; return <Modal isOpen={isOpen} onClose={onClose} title={event ? 'Edytuj zajęcia' : 'Nowe zajęcia'} width="580px"><Input label="Tytuł" value={form.title} onChange={v => setForm({ ...form, title: v })} /><div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}><Input label="Początek" type="datetime-local" value={form.start} onChange={v => setForm({ ...form, start: v })} /><Input label="Koniec" type="datetime-local" value={form.end} onChange={v => setForm({ ...form, end: v })} /></div><div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}><Input label="Sala" value={form.location} onChange={v => setForm({ ...form, location: v })} /><Select label="Przedmiot" value={form.subjectId} onChange={v => setForm({ ...form, subjectId: v })} options={[{ value: '', label: '—' }, ...subjects.map(s => ({ value: s.id, label: s.name }))]} /></div><Input label="Plan" value={form.plan} onChange={v => setForm({ ...form, plan: v })} multiline rows={2} /><Input label="Notatki" value={form.notes} onChange={v => setForm({ ...form, notes: v })} multiline rows={2} /><PhotoUploader photos={form.photos} onAdd={handlePhoto} onRemove={async url => { await onDeletePhoto(url); setForm(fo => ({ ...fo, photos: fo.photos.filter(p => p !== url) })); }} disabled={!event?.id || uploading} />{!event?.id && <div style={{ fontSize: 11, color: '#f59e0b', marginBottom: 12 }}>💡 Zapisz, by dodać zdjęcia</div>}<div style={{ display: 'flex', gap: 10, justifyContent: 'space-between' }}><div>{event && <Button onClick={() => { if (confirm('Usunąć?')) { onDelete(event.id); onClose(); }}} variant="danger">Usuń</Button>}</div><div style={{ display: 'flex', gap: 10 }}><Button onClick={onClose} variant="secondary">Anuluj</Button><Button onClick={() => onSave({ ...event, ...form, start: new Date(form.start), end: new Date(form.end), subjectId: form.subjectId || null })} disabled={!form.title.trim()}>Zapisz</Button></div></div></Modal>; };
 
-    const StudentModal = ({ isOpen, onClose, student, stages, onSave }) => { 
-      const [form, setForm] = useState({ name: '', email: '', topic: '', stage: 'stage1', notes: '', defenseDate: '' }); 
-      useEffect(() => { 
-        setForm(student ? { 
-          ...student, 
-          defenseDate: student.defenseDate ? new Date(student.defenseDate).toISOString().slice(0, 10) : '' 
-        } : { name: '', email: '', topic: '', stage: 'stage1', notes: '', defenseDate: '' }); 
-      }, [student]); 
-      return <Modal isOpen={isOpen} onClose={onClose} title={student ? 'Edytuj' : 'Nowa osoba'}>
-        <Input label="Imię i nazwisko" value={form.name} onChange={v => setForm({ ...form, name: v })} />
-        <Input label="Email" type="email" value={form.email} onChange={v => setForm({ ...form, email: v })} />
-        <Input label="Temat" value={form.topic} onChange={v => setForm({ ...form, topic: v })} multiline rows={2} />
-        <Select label="Etap" value={form.stage} onChange={v => setForm({ ...form, stage: v })} options={stages.sort((a, b) => a.order - b.order).map(s => ({ value: s.id, label: s.label }))} />
-        <Input label="Planowana data obrony" type="date" value={form.defenseDate} onChange={v => setForm({ ...form, defenseDate: v })} />
-        <Input label="Notatki" value={form.notes} onChange={v => setForm({ ...form, notes: v })} multiline rows={2} />
-        <div style={{ display: 'flex', gap: 10 }}>
-          <Button onClick={onClose} variant="secondary" style={{ flex: 1 }}>Anuluj</Button>
-          <Button onClick={() => { if (form.name.trim()) onSave({ ...student, ...form, defenseDate: form.defenseDate ? new Date(form.defenseDate) : null }); }} disabled={!form.name.trim()} style={{ flex: 1 }}>Zapisz</Button>
-        </div>
-      </Modal>; 
-    };
+    const StudentModal = ({ isOpen, onClose, student, stages, onSave }) => { const [form, setForm] = useState({ name: '', email: '', topic: '', stage: 'stage1', notes: '' }); useEffect(() => { setForm(student ? { ...student } : { name: '', email: '', topic: '', stage: 'stage1', notes: '' }); }, [student]); return <Modal isOpen={isOpen} onClose={onClose} title={student ? 'Edytuj' : 'Nowa osoba'}><Input label="Imię i nazwisko" value={form.name} onChange={v => setForm({ ...form, name: v })} /><Input label="Email" type="email" value={form.email} onChange={v => setForm({ ...form, email: v })} /><Input label="Temat" value={form.topic} onChange={v => setForm({ ...form, topic: v })} multiline rows={2} /><Select label="Etap" value={form.stage} onChange={v => setForm({ ...form, stage: v })} options={stages.sort((a, b) => a.order - b.order).map(s => ({ value: s.id, label: s.label }))} /><Input label="Notatki" value={form.notes} onChange={v => setForm({ ...form, notes: v })} multiline rows={2} /><div style={{ display: 'flex', gap: 10 }}><Button onClick={onClose} variant="secondary" style={{ flex: 1 }}>Anuluj</Button><Button onClick={() => { if (form.name.trim()) onSave({ ...student, ...form }); }} disabled={!form.name.trim()} style={{ flex: 1 }}>Zapisz</Button></div></Modal>; };
 
     const MeetingModal = ({ isOpen, onClose, student, templates, onSave, onUploadAudio }) => { const t = themes[useTheme().theme]; const [form, setForm] = useState({ date: new Date().toISOString().slice(0, 16), notes: '', tasks: '', checkedItems: [], templateId: '' }); const [tpl, setTpl] = useState(null); useEffect(() => { setForm({ date: new Date().toISOString().slice(0, 16), notes: '', tasks: '', checkedItems: [], templateId: '' }); setTpl(null); }, [student]); const handleTpl = id => { setForm({ ...form, templateId: id, checkedItems: [] }); setTpl(templates.find(t => t.id === id) || null); }; const handleAudio = async blob => { if (!student) return; const url = await onUploadAudio(blob, student.id); if (url) setForm({ ...form, audioUrl: url }); }; return <Modal isOpen={isOpen} onClose={onClose} title={`Spotkanie: ${student?.name || ''}`} width="520px"><Input label="Data" type="datetime-local" value={form.date} onChange={v => setForm({ ...form, date: v })} /><Select label="Szablon" value={form.templateId} onChange={handleTpl} options={[{ value: '', label: '— Bez szablonu —' }, ...templates.map(t => ({ value: t.id, label: t.name }))]} />{tpl && <Checklist template={tpl} checked={form.checkedItems} onChange={items => setForm({ ...form, checkedItems: items })} />}<Input label="Notatki" value={form.notes} onChange={v => setForm({ ...form, notes: v })} multiline rows={3} /><Input label="Zadania" value={form.tasks} onChange={v => setForm({ ...form, tasks: v })} multiline rows={2} /><div style={{ marginBottom: 14 }}><label style={{ display: 'block', marginBottom: 6, color: t.textMuted, fontSize: 13 }}>Notatka głosowa</label><VoiceRecorder onSave={handleAudio} disabled={false} />{form.audioUrl && <audio src={form.audioUrl} controls style={{ width: '100%', height: 32, marginTop: 8 }} />}</div><div style={{ display: 'flex', gap: 10 }}><Button onClick={onClose} variant="secondary" style={{ flex: 1 }}>Anuluj</Button><Button onClick={() => { if (student && (form.notes.trim() || form.checkedItems.length > 0)) onSave(student.id, { ...form, date: new Date(form.date) }); }} disabled={!form.notes.trim() && form.checkedItems.length === 0} style={{ flex: 1 }}>Zapisz</Button></div></Modal>; };
 
@@ -1358,66 +983,6 @@
     const TimelineModal = ({ isOpen, onClose, student, stages }) => student ? <Modal isOpen={isOpen} onClose={onClose} title={`Historia: ${student.name}`}><Timeline student={student} stages={stages} /></Modal> : null;
 
     const EmailModal = ({ isOpen, onClose, student, templates }) => <Modal isOpen={isOpen} onClose={onClose} title={'Email do: ' + (student?.name || '')} width="550px"><EmailComposer student={student} templates={templates} onClose={onClose} /></Modal>;
-
-    const TaskModal = ({ isOpen, onClose, task, onSave }) => {
-      const t = themes[useTheme().theme];
-      const [form, setForm] = useState({ title: '', date: '', category: 'other', priority: 'medium', recurrence: 'none', notes: '' });
-      
-      useEffect(() => {
-        if (task) {
-          setForm({
-            ...task,
-            date: task.date ? new Date(task.date).toISOString().slice(0, 16) : ''
-          });
-        } else {
-          const d = new Date();
-          d.setHours(d.getHours() + 1, 0, 0, 0);
-          setForm({ title: '', date: d.toISOString().slice(0, 16), category: 'other', priority: 'medium', recurrence: 'none', notes: '' });
-        }
-      }, [task]);
-
-      return (
-        <Modal isOpen={isOpen} onClose={onClose} title={task ? 'Edytuj zadanie' : 'Nowe zadanie'} width="500px">
-          <Input label="Tytuł" value={form.title} onChange={v => setForm({ ...form, title: v })} placeholder="Co trzeba zrobić?" />
-          <Input label="Termin" type="datetime-local" value={form.date} onChange={v => setForm({ ...form, date: v })} />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <Select 
-              label="Kategoria" 
-              value={form.category} 
-              onChange={v => setForm({ ...form, category: v })} 
-              options={TASK_CATEGORIES.map(c => ({ value: c.id, label: c.icon + ' ' + c.name }))} 
-            />
-            <Select 
-              label="Priorytet" 
-              value={form.priority} 
-              onChange={v => setForm({ ...form, priority: v })} 
-              options={[
-                { value: 'high', label: '❗ Wysoki' },
-                { value: 'medium', label: '❕ Średni' },
-                { value: 'low', label: '▪️ Niski' }
-              ]} 
-            />
-          </div>
-          <Select 
-            label="Powtarzanie" 
-            value={form.recurrence} 
-            onChange={v => setForm({ ...form, recurrence: v })} 
-            options={RECURRENCE_OPTIONS.map(r => ({ value: r.id, label: r.name }))} 
-          />
-          <Input label="Notatki" value={form.notes} onChange={v => setForm({ ...form, notes: v })} multiline rows={2} placeholder="Dodatkowe informacje..." />
-          <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-            <Button onClick={onClose} variant="secondary" style={{ flex: 1 }}>Anuluj</Button>
-            <Button 
-              onClick={() => { if (form.title.trim()) onSave({ ...task, ...form, date: new Date(form.date) }); }} 
-              disabled={!form.title.trim()} 
-              style={{ flex: 1 }}
-            >
-              Zapisz
-            </Button>
-          </div>
-        </Modal>
-      );
-    };
 
     const SettingsModal = ({ isOpen, onClose, semesterDates, setSemesterDates, theme, setTheme, inactivityDays, setInactivityDays, templates, setTemplates, onArchiveSemester, onExportReport, archives, onRestoreArchive, onDeleteArchive, syncStatus }) => { const t = themes[theme]; const [tab, setTab] = useState('general'); const [start, setStart] = useState(''); const [end, setEnd] = useState(''); const [days, setDays] = useState(inactivityDays); const [localTpl, setLocalTpl] = useState([]); const [editTpl, setEditTpl] = useState(null); useEffect(() => { if (semesterDates) { setStart(semesterDates.start.toISOString().slice(0, 10)); setEnd(semesterDates.end.toISOString().slice(0, 10)); } setDays(inactivityDays); setLocalTpl([...templates]); }, [semesterDates, inactivityDays, templates]); return <Modal isOpen={isOpen} onClose={onClose} title="Ustawienia" width="580px"><div style={{ display: 'flex', gap: 4, marginBottom: 16 }}>{['general', 'templates', 'archive'].map(id => <button key={id} onClick={() => setTab(id)} style={{ padding: '8px 14px', borderRadius: 6, border: `1px solid ${t.border}`, background: tab === id ? t.primary : 'transparent', color: tab === id ? 'white' : t.textMuted, cursor: 'pointer', fontSize: 12 }}>{id === 'general' ? '⚙️ Ogólne' : id === 'templates' ? '📋 Szablony' : '📁 Archiwum'}</button>)}</div>{tab === 'general' && <><div style={{ marginBottom: 16, padding: 10, background: t.bgAlt, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><span style={{ color: t.textMuted, fontSize: 12 }}>Status:</span><span className={`sync-indicator ${syncStatus}`}>{syncStatus === 'online' ? '🟢 Połączono' : '🔴 Offline'}</span></div><div style={{ marginBottom: 16 }}><label style={{ display: 'block', marginBottom: 6, color: t.textMuted, fontSize: 12 }}>Motyw</label><div style={{ display: 'flex', gap: 8 }}><button onClick={() => setTheme('dark')} style={{ flex: 1, padding: 10, borderRadius: 8, border: `2px solid ${theme === 'dark' ? t.primary : t.border}`, background: '#1e1e2e', color: '#e2e2e9', cursor: 'pointer', fontSize: 12 }}>🌙 Ciemny</button><button onClick={() => setTheme('light')} style={{ flex: 1, padding: 10, borderRadius: 8, border: `2px solid ${theme === 'light' ? t.primary : t.border}`, background: '#fff', color: '#1e293b', cursor: 'pointer', fontSize: 12 }}>☀️ Jasny</button></div></div><div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}><Input label="Początek semestru" type="date" value={start} onChange={setStart} /><Input label="Koniec" type="date" value={end} onChange={setEnd} /></div><Input label="Ostrzeżenie po dniach" type="number" value={days} onChange={v => setDays(parseInt(v) || 21)} /><div style={{ borderTop: `1px solid ${t.border}`, paddingTop: 14, marginTop: 14, display: 'flex', gap: 8 }}><Button onClick={onExportReport} variant="secondary" size="sm">📊 Raport PDF</Button><Button onClick={() => { if (confirm('Zarchiwizować semestr?')) onArchiveSemester(); }} variant="secondary" size="sm">📁 Archiwizuj</Button></div><div style={{ display: 'flex', gap: 10, marginTop: 16 }}><Button onClick={onClose} variant="secondary" style={{ flex: 1 }}>Anuluj</Button><Button onClick={() => { setSemesterDates({ start: new Date(start), end: new Date(end) }); setInactivityDays(days); onClose(); }} style={{ flex: 1 }}>Zapisz</Button></div></>}{tab === 'templates' && <>{!editTpl ? <>{localTpl.map(tpl => <div key={tpl.id} style={{ padding: 10, background: t.bgAlt, borderRadius: 6, marginBottom: 6 }}><div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}><strong style={{ color: t.text, fontSize: 13 }}>{tpl.name}</strong><div style={{ display: 'flex', gap: 4 }}><Button onClick={() => setEditTpl(tpl)} variant="ghost" size="sm">✏️</Button><Button onClick={() => setLocalTpl(localTpl.filter(x => x.id !== tpl.id))} variant="ghost" size="sm">🗑️</Button></div></div><div style={{ fontSize: 11, color: t.textDim }}>{tpl.items.length} punktów</div></div>)}<Button onClick={() => setEditTpl({ id: genId(), name: '', items: [''] })} variant="ghost" style={{ width: '100%', marginTop: 8 }}>+ Nowy szablon</Button><div style={{ display: 'flex', gap: 10, marginTop: 16 }}><Button onClick={onClose} variant="secondary" style={{ flex: 1 }}>Zamknij</Button><Button onClick={() => { setTemplates(localTpl); onClose(); }} style={{ flex: 1 }}>Zapisz</Button></div></> : <><Input label="Nazwa" value={editTpl.name} onChange={v => setEditTpl({ ...editTpl, name: v })} /><label style={{ display: 'block', marginBottom: 6, color: t.textMuted, fontSize: 12 }}>Punkty</label>{editTpl.items.map((item, i) => <div key={i} style={{ display: 'flex', gap: 4, marginBottom: 4 }}><input value={item} onChange={e => { const items = [...editTpl.items]; items[i] = e.target.value; setEditTpl({ ...editTpl, items }); }} style={{ flex: 1, padding: 6, borderRadius: 4, border: `1px solid ${t.border}`, background: t.bg, color: t.text, fontSize: 12 }} placeholder="Punkt..." /><button onClick={() => setEditTpl({ ...editTpl, items: editTpl.items.filter((_, j) => j !== i) })} style={{ background: 'none', border: 'none', color: t.danger, cursor: 'pointer' }}>×</button></div>)}<Button onClick={() => setEditTpl({ ...editTpl, items: [...editTpl.items, ''] })} variant="ghost" size="sm" style={{ marginTop: 4 }}>+ Punkt</Button><div style={{ display: 'flex', gap: 10, marginTop: 16 }}><Button onClick={() => setEditTpl(null)} variant="secondary" style={{ flex: 1 }}>Wróć</Button><Button onClick={() => { const filtered = editTpl.items.filter(i => i.trim()); if (editTpl.name.trim() && filtered.length) { const newTpl = { ...editTpl, items: filtered }; setLocalTpl(localTpl.find(t => t.id === newTpl.id) ? localTpl.map(t => t.id === newTpl.id ? newTpl : t) : [...localTpl, newTpl]); setEditTpl(null); }}} style={{ flex: 1 }}>Zapisz</Button></div></>}</>}{tab === 'archive' && <><h4 style={{ margin: '0 0 12px', fontSize: 13, color: t.text }}>📁 Archiwum</h4>{!archives.length ? <div style={{ padding: 20, textAlign: 'center', color: t.textDim }}>Brak archiwów</div> : archives.map(a => <div key={a.id} style={{ padding: 12, background: t.bgAlt, borderRadius: 6, marginBottom: 6 }}><div style={{ display: 'flex', justifyContent: 'space-between' }}><div><div style={{ fontWeight: 600, color: t.text, fontSize: 13 }}>{a.name}</div><div style={{ fontSize: 11, color: t.textDim }}>{a.studentsCount} osób • {a.eventsCount} zajęć • {fmtDate(a.archivedAt)}</div></div><div style={{ display: 'flex', gap: 4 }}><Button onClick={() => onRestoreArchive(a)} variant="ghost" size="sm">Przywróć</Button><Button onClick={() => onDeleteArchive(a.id)} variant="danger" size="sm">🗑️</Button></div></div></div>)}</>}</Modal>; };
 
@@ -1459,55 +1024,23 @@
       const [showTimeline, setShowTimeline] = useState(false);
       const [showSearch, setShowSearch] = useState(false);
       const [showEmail, setShowEmail] = useState(false);
-      const [showTask, setShowTask] = useState(false);
       const [emailTemplates] = useState(DEFAULT_EMAIL_TEMPLATES);
 
       const [editEvent, setEditEvent] = useState(null);
       const [editStudent, setEditStudent] = useState(null);
       const [editReminder, setEditReminder] = useState(null);
-      const [editTask, setEditTask] = useState(null);
       const [meetingStudent, setMeetingStudent] = useState(null);
       const [timelineStudent, setTimelineStudent] = useState(null);
       const [emailStudent, setEmailStudent] = useState(null);
       const [studentSearch, setStudentSearch] = useState('');
       const [studentStageFilter, setStudentStageFilter] = useState('all');
 
-      // Prodziekan data
-      const [tasks, setTasks] = useState([]);
-      const [quickNotes, setQuickNotes] = useState('');
-
       const { status, upload, uploadAudio, delFile, save, del, subscribe } = useFirebase(user?.uid);
 
       useEffect(() => { document.body.className = theme; }, [theme]);
-      
-      // Notification system - check every minute
-      useEffect(() => {
-        requestNotificationPermission();
-        const checkNotifications = () => {
-          const now = new Date();
-          // Check tasks
-          tasks.filter(t => !t.done).forEach(task => {
-            const taskDate = new Date(task.date);
-            const diff = (taskDate - now) / 60000; // minutes
-            if (diff > 0 && diff <= 15) {
-              showBrowserNotification('📋 Zadanie za 15 minut', task.title);
-            }
-          });
-          // Check reminders
-          reminders.filter(r => !r.done).forEach(rem => {
-            const remDate = new Date(rem.date);
-            const diff = (remDate - now) / 60000;
-            if (diff > 0 && diff <= 15) {
-              showBrowserNotification('⏰ Przypomnienie za 15 minut', rem.title);
-            }
-          });
-        };
-        const interval = setInterval(checkNotifications, 60000);
-        return () => clearInterval(interval);
-      }, [tasks, reminders]);
       useEffect(() => { const h = e => { if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); setShowSearch(true); } if (e.key === 'Escape') setShowSearch(false); }; window.addEventListener('keydown', h); return () => window.removeEventListener('keydown', h); }, []);
 
-      useEffect(() => { if (!user?.uid || !isFirebaseConfigured) return; const unsubs = [subscribe('subjects', d => d.length && setSubjects(d)), subscribe('events', d => d.length && setEvents(d.map(e => ({ ...e, photos: e.photos || [] })))), subscribe('students', d => d.length && setStudents(d)), subscribe('reminders', d => d.length && setReminders(d)), subscribe('archives', d => setArchives(d)), subscribe('tasks', d => setTasks(d)), subscribe('settings', d => { const s = d.find(x => x.id === 'main'); if (s) { if (s.stages) setStages(s.stages); if (s.templates) setTemplates(s.templates); if (s.semesterDates) setSemesterDates(s.semesterDates); if (s.inactivityDays) setInactivityDays(s.inactivityDays); if (s.quickNotes) setQuickNotes(s.quickNotes); }})]; return () => unsubs.forEach(u => u()); }, [user?.uid, isFirebaseConfigured]);
+      useEffect(() => { if (!user?.uid || !isFirebaseConfigured) return; const unsubs = [subscribe('subjects', d => d.length && setSubjects(d)), subscribe('events', d => d.length && setEvents(d.map(e => ({ ...e, photos: e.photos || [] })))), subscribe('students', d => d.length && setStudents(d)), subscribe('reminders', d => d.length && setReminders(d)), subscribe('archives', d => setArchives(d)), subscribe('settings', d => { const s = d.find(x => x.id === 'main'); if (s) { if (s.stages) setStages(s.stages); if (s.templates) setTemplates(s.templates); if (s.semesterDates) setSemesterDates(s.semesterDates); if (s.inactivityDays) setInactivityDays(s.inactivityDays); }})]; return () => unsubs.forEach(u => u()); }, [user?.uid, isFirebaseConfigured]);
 
       const saveSubject = async sub => { const id = sub.id || genId(), data = { ...sub, id }; sub.id ? setSubjects(subjects.map(s => s.id === sub.id ? data : s)) : setSubjects([...subjects, data]); if (isFirebaseConfigured && user) await save('subjects', id, data); };
       const delSubject = async id => { setSubjects(subjects.filter(s => s.id !== id)); setEvents(events.map(e => e.subjectId === id ? { ...e, subjectId: null } : e)); if (isFirebaseConfigured && user) await del('subjects', id); };
@@ -1526,64 +1059,6 @@
       const uploadVoice = async (blob, sid) => isFirebaseConfigured && user ? await uploadAudio(blob, sid) : URL.createObjectURL(blob);
       const importICS = async content => { for (const e of parseICS(content)) await saveEvent(e); setShowImport(false); };
       const importXLS = async list => { for (const s of list) await saveStudent(s); setShowImport(false); };
-
-      // Task functions
-      const saveTask = async task => { 
-        const id = task.id || genId(), data = { ...task, id }; 
-        task.id ? setTasks(tasks.map(t => t.id === task.id ? data : t)) : setTasks([...tasks, data]); 
-        setShowTask(false); setEditTask(null); 
-        if (isFirebaseConfigured && user) await save('tasks', id, data); 
-      };
-      const delTask = async id => { 
-        setTasks(tasks.filter(t => t.id !== id)); 
-        if (isFirebaseConfigured && user) await del('tasks', id); 
-      };
-      const toggleTask = async id => { 
-        const task = tasks.find(t => t.id === id); 
-        if (!task) return;
-        const data = { ...task, done: !task.done, lastCompleted: !task.done ? new Date() : task.lastCompleted };
-        // Handle recurring tasks
-        if (!task.done && task.recurrence && task.recurrence !== 'none') {
-          const nextDate = getNextOccurrence(data);
-          if (nextDate) {
-            const newTask = { ...task, id: genId(), date: nextDate, done: false };
-            setTasks([...tasks.map(t => t.id === id ? data : t), newTask]);
-            if (isFirebaseConfigured && user) { await save('tasks', data.id, data); await save('tasks', newTask.id, newTask); }
-            return;
-          }
-        }
-        setTasks(tasks.map(t => t.id === id ? data : t)); 
-        if (isFirebaseConfigured && user) await save('tasks', id, data); 
-      };
-      const saveQuickNotes = async notes => { 
-        setQuickNotes(notes); 
-        if (isFirebaseConfigured && user) await save('settings', 'main', { stages, templates, semesterDates, inactivityDays, quickNotes: notes }); 
-      };
-
-      // Student functions: favorite, color, tags
-      const toggleStudentFavorite = async id => {
-        const student = students.find(s => s.id === id);
-        if (!student) return;
-        const data = { ...student, favorite: !student.favorite };
-        setStudents(students.map(s => s.id === id ? data : s));
-        if (isFirebaseConfigured && user) await save('students', id, data);
-      };
-      const updateStudentColor = async (id, color) => {
-        const student = students.find(s => s.id === id);
-        if (!student) return;
-        const data = { ...student, color };
-        setStudents(students.map(s => s.id === id ? data : s));
-        if (isFirebaseConfigured && user) await save('students', id, data);
-      };
-      const updateStudentTags = async (id, tagId) => {
-        const student = students.find(s => s.id === id);
-        if (!student) return;
-        const tags = student.tags || [];
-        const newTags = tags.includes(tagId) ? tags.filter(t => t !== tagId) : [...tags, tagId];
-        const data = { ...student, tags: newTags };
-        setStudents(students.map(s => s.id === id ? data : s));
-        if (isFirebaseConfigured && user) await save('students', id, data);
-      };
       const importStudents = async list => { for (const s of list) await saveStudent(s); setShowImportStudents(false); };
       const archiveSemester = async () => { const arch = { id: genId(), name: `Semestr ${fmtDate(semesterDates.start)} - ${fmtDate(semesterDates.end)}`, archivedAt: new Date(), studentsCount: students.length, eventsCount: events.length, students: [...students], events: [...events], reminders: [...reminders], semesterDates: { ...semesterDates } }; setArchives([...archives, arch]); if (isFirebaseConfigured && user) await save('archives', arch.id, arch); setStudents([]); setEvents([]); setReminders([]); };
       const restoreArchive = async arch => { if (!confirm('Przywrócić?')) return; for (const s of arch.students || []) await saveStudent(s); for (const e of arch.events || []) await saveEvent(e); for (const r of arch.reminders || []) await saveReminder(r); if (arch.semesterDates) setSemesterDates(arch.semesterDates); };
@@ -1606,7 +1081,7 @@
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
                 <h1 style={{ margin: 0, fontSize: 17, fontWeight: 700, background: 'linear-gradient(135deg, #6366f1, #a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>📚 Dydaktyka</h1>
                 <span className={`sync-indicator ${status}`}>{status === 'online' ? '☁️' : '💾'}</span>
-                <nav style={{ display: 'flex', gap: 3 }}>{[{ id: 'today', icon: '☀️', label: 'Dziś' }, { id: 'calendar', icon: '📅', label: 'Kalendarz' }, { id: 'seminar', icon: '🎓', label: 'Seminarium' }, { id: 'prodziekan', icon: '🏛️', label: 'Prodziekan' }, { id: 'reminders', icon: '⏰', label: 'Przypomnienia' }, { id: 'dashboard', icon: '📊', label: 'Dashboard' }].map(tab => <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ padding: '8px 14px', borderRadius: 6, border: 'none', background: activeTab === tab.id ? t.primary : 'transparent', color: activeTab === tab.id ? 'white' : t.textMuted, cursor: 'pointer', fontSize: 14, fontWeight: 500 }}><span>{tab.icon}</span><span className="hide-mobile" style={{ marginLeft: 5 }}>{tab.label}</span></button>)}</nav>
+                <nav style={{ display: 'flex', gap: 3 }}>{[{ id: 'today', icon: '☀️', label: 'Dziś' }, { id: 'calendar', icon: '📅', label: 'Kalendarz' }, { id: 'seminar', icon: '🎓', label: 'Seminarium' }, { id: 'reminders', icon: '⏰', label: 'Przypomnienia' }, { id: 'dashboard', icon: '📊', label: 'Dashboard' }].map(tab => <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ padding: '7px 11px', borderRadius: 6, border: 'none', background: activeTab === tab.id ? t.primary : 'transparent', color: activeTab === tab.id ? 'white' : t.textMuted, cursor: 'pointer', fontSize: 12, fontWeight: 500 }}><span>{tab.icon}</span><span className="hide-mobile" style={{ marginLeft: 4 }}>{tab.label}</span></button>)}</nav>
               </div>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                 <button onClick={() => setShowSearch(true)} style={{ padding: '7px 12px', borderRadius: 6, border: `1px solid ${t.border}`, background: t.bgAlt, color: t.textDim, cursor: 'pointer', fontSize: 11, display: 'flex', alignItems: 'center', gap: 6 }}>🔍 <span className="hide-mobile">Szukaj</span> <kbd style={{ background: t.border, padding: '2px 5px', borderRadius: 3, fontSize: 9 }}>⌘K</kbd></button>
@@ -1619,10 +1094,9 @@
             <main style={{ flex: 1, padding: 16, overflowY: 'auto' }}>
               {activeTab === 'today' && <TodayView events={events} reminders={reminders} students={students} stages={stages} inactivityDays={inactivityDays} onEventClick={e => { setEditEvent(e); setShowEvent(true); }} onReminderClick={r => { setEditReminder(r); setShowReminder(true); }} onStudentClick={s => { setEditStudent(s); setShowStudent(true); }} />}
               {activeTab === 'calendar' && <CalendarView view={calendarView} setView={setCalendarView} currentDate={currentDate} setCurrentDate={setCurrentDate} events={events} subjects={subjects} semesterDates={semesterDates} onEventClick={e => { setEditEvent(e); setShowEvent(true); }} onImportClick={() => setShowImport(true)} onSubjectClick={() => setShowSubject(true)} onAddEvent={() => { setEditEvent(null); setShowEvent(true); }} getSubjectById={getSubjectById} subjectFilter={subjectFilter} setSubjectFilter={setSubjectFilter} />}
-              {activeTab === 'seminar' && <SeminarView students={filteredStudents} allStudents={students} search={studentSearch} setSearch={setStudentSearch} stageFilter={studentStageFilter} setStageFilter={setStudentStageFilter} stages={stages} onAddStudent={() => { setEditStudent(null); setShowStudent(true); }} onEditStudent={s => { setEditStudent(s); setShowStudent(true); }} onDeleteStudent={delStudent} onAddMeeting={s => { setMeetingStudent(s); setShowMeeting(true); }} onDeleteMeeting={delMeeting} onViewTimeline={s => { setTimelineStudent(s); setShowTimeline(true); }} onExportPDF={s => exportStudentPDF(s, stages)} onEditStages={() => setShowStages(true)} onExportCSV={() => exportCSV(students, stages)} onImportCSV={() => setShowImport(true)} onSendEmail={s => { setEmailStudent(s); setShowEmail(true); }} onToggleFavorite={toggleStudentFavorite} onUpdateStudentColor={updateStudentColor} onUpdateStudentTags={updateStudentTags} inactivityDays={inactivityDays} semesterEnd={semesterDates.end} studentTags={DEFAULT_STUDENT_TAGS} />}
-              {activeTab === 'prodziekan' && <ProdziekanView tasks={tasks} quickNotes={quickNotes} onTaskToggle={toggleTask} onTaskEdit={t => { setEditTask(t); setShowTask(true); }} onTaskDelete={delTask} onAddTask={() => { setEditTask(null); setShowTask(true); }} onQuickNotesChange={saveQuickNotes} semesterEnd={semesterDates.end} />}
+              {activeTab === 'seminar' && <SeminarView students={filteredStudents} allStudents={students} search={studentSearch} setSearch={setStudentSearch} stageFilter={studentStageFilter} setStageFilter={setStudentStageFilter} stages={stages} onAddStudent={() => { setEditStudent(null); setShowStudent(true); }} onEditStudent={s => { setEditStudent(s); setShowStudent(true); }} onDeleteStudent={delStudent} onAddMeeting={s => { setMeetingStudent(s); setShowMeeting(true); }} onDeleteMeeting={delMeeting} onViewTimeline={s => { setTimelineStudent(s); setShowTimeline(true); }} onExportPDF={s => exportStudentPDF(s, stages)} onEditStages={() => setShowStages(true)} onExportCSV={() => exportCSV(students, stages)} onImportCSV={() => setShowImport(true)} onSendEmail={s => { setEmailStudent(s); setShowEmail(true); }} inactivityDays={inactivityDays} />}
               {activeTab === 'reminders' && <RemindersView reminders={reminders} events={events} students={students} onAdd={() => { setEditReminder(null); setShowReminder(true); }} onEdit={r => { setEditReminder(r); setShowReminder(true); }} onDelete={delReminder} onToggle={toggleReminder} />}
-              {activeTab === 'dashboard' && <DashboardView events={events} students={students} reminders={reminders} stages={stages} semesterDates={semesterDates} currentDate={currentDate} />}
+              {activeTab === 'dashboard' && <DashboardView events={events} students={students} reminders={reminders} stages={stages} semesterDates={semesterDates} />}
             </main>
 
             <footer style={{ textAlign: 'center', padding: '10px 16px', borderTop: `1px solid ${t.border}`, color: t.textDim, fontSize: 11 }}><strong style={{ color: t.textMuted }}>Jakub Kuś</strong> • Dydaktyka v4.0</footer>
@@ -1639,7 +1113,6 @@
             <StagesModal isOpen={showStages} onClose={() => setShowStages(false)} stages={stages} onSave={saveStages} />
             <TimelineModal isOpen={showTimeline} onClose={() => { setShowTimeline(false); setTimelineStudent(null); }} student={timelineStudent} stages={stages} />
             <EmailModal isOpen={showEmail} onClose={() => { setShowEmail(false); setEmailStudent(null); }} student={emailStudent} templates={emailTemplates} />
-            <TaskModal isOpen={showTask} onClose={() => { setShowTask(false); setEditTask(null); }} task={editTask} onSave={saveTask} />
             <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} semesterDates={semesterDates} setSemesterDates={s => saveSettings(s, null, null)} theme={theme} setTheme={setTheme} inactivityDays={inactivityDays} setInactivityDays={d => saveSettings(null, d, null)} templates={templates} setTemplates={t => saveSettings(null, null, t)} onArchiveSemester={archiveSemester} onExportReport={() => exportSemesterPDF(students, events, stages, semesterDates)} archives={archives} onRestoreArchive={restoreArchive} onDeleteArchive={deleteArchive} syncStatus={status} />
           </div>
         </ThemeContext.Provider>
