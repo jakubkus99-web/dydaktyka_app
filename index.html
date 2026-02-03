@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dydaktyka v5.0 - Google Calendar</title>
+  <title>Dydaktyka v6.0</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -14,47 +14,72 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'IBM Plex Sans', -apple-system, sans-serif; min-height: 100vh; }
-    body.dark { background: linear-gradient(135deg, #0f0f17, #1a1a2e); color: #e2e2e9; }
-    body.light { background: linear-gradient(135deg, #f5f7fa, #e4e9f0); color: #1e293b; }
-    ::-webkit-scrollbar { width: 8px; }
-    body.dark ::-webkit-scrollbar-thumb { background: #363652; border-radius: 4px; }
-    body.light ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
-    .sync-indicator { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 11px; }
-    .sync-indicator.online { background: #22c55e22; color: #22c55e; }
-    .sync-indicator.offline { background: #ef444422; color: #ef4444; }
-    .gcal-link { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; background: #4285f422; color: #4285f4; font-size: 11px; text-decoration: none; cursor: pointer; border: none; }
-    .gcal-link:hover { background: #4285f444; }
-    .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; }
-    .photo-thumb { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; cursor: pointer; }
-    .photo-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 2000; }
-    .photo-modal img { max-width: 90%; max-height: 90%; }
-    .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-    .login-card { background: #1e1e2e; border-radius: 16px; padding: 48px; text-align: center; max-width: 400px; border: 1px solid #363652; }
-    .google-btn { display: inline-flex; align-items: center; gap: 12px; padding: 14px 28px; border-radius: 8px; border: none; background: white; color: #333; font-size: 16px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-    .user-avatar { width: 36px; height: 36px; border-radius: 50%; cursor: pointer; border: 2px solid #6366f1; }
-    .quick-fab { position: fixed; bottom: 24px; right: 24px; z-index: 100; }
-    .quick-fab-btn { width: 56px; height: 56px; border-radius: 50%; border: none; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; font-size: 24px; cursor: pointer; box-shadow: 0 4px 20px rgba(99,102,241,0.4); }
-    .quick-fab-menu { position: absolute; bottom: 70px; right: 0; display: flex; flex-direction: column; gap: 8px; }
-    .quick-fab-item { padding: 10px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; white-space: nowrap; display: flex; align-items: center; gap: 8px; }
-    .global-search { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: flex-start; justify-content: center; padding-top: 100px; z-index: 1500; }
-    .timeline { position: relative; padding-left: 30px; }
-    .timeline::before { content: ''; position: absolute; left: 10px; top: 0; bottom: 0; width: 2px; background: #363652; }
-    .timeline-item { position: relative; padding-bottom: 20px; }
-    .timeline-item::before { content: ''; position: absolute; left: -24px; top: 4px; width: 12px; height: 12px; border-radius: 50%; background: #6366f1; }
-    .heatmap { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
-    .heatmap-cell { aspect-ratio: 1; border-radius: 2px; font-size: 9px; display: flex; align-items: center; justify-content: center; }
-    .checklist-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
-    .checklist-box { width: 20px; height: 20px; border-radius: 4px; border: 2px solid #6366f1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-    .checklist-box.checked { background: #6366f1; }
-    .voice-recorder { display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: 8px; }
-    .voice-btn { width: 48px; height: 48px; border-radius: 50%; border: none; cursor: pointer; font-size: 20px; }
-    .voice-btn.recording { background: #ef4444; animation: pulse 1s infinite; }
-    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
-    @media (max-width: 768px) { .hide-mobile { display: none !important; } }
+    :root { --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1); }
+    body { font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; min-height: 100vh; transition: background 0.4s var(--ease-out-expo), color 0.3s; }
+    body.dark { background: linear-gradient(145deg, #0a0a0f 0%, #12121a 50%, #0d0d14 100%); color: #e8e8ed; }
+    body.light { background: linear-gradient(145deg, #f8f9fc 0%, #eef1f5 50%, #f5f7fa 100%); color: #1a1d29; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    body.dark ::-webkit-scrollbar-thumb { background: #2a2a3e; border-radius: 3px; }
+    body.light ::-webkit-scrollbar-thumb { background: #c5cad3; border-radius: 3px; }
+    ::selection { background: #6366f155; }
+    .sync-indicator { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 500; transition: all 0.3s var(--ease-out-expo); }
+    .sync-indicator.online { background: linear-gradient(135deg, #22c55e15, #22c55e08); color: #22c55e; border: 1px solid #22c55e30; }
+    .sync-indicator.offline { background: linear-gradient(135deg, #ef444415, #ef444408); color: #ef4444; border: 1px solid #ef444430; }
+    .sync-indicator.syncing { background: linear-gradient(135deg, #f59e0b15, #f59e0b08); color: #f59e0b; border: 1px solid #f59e0b30; animation: syncPulse 1.5s infinite; }
+    @keyframes syncPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+    .gcal-link { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 8px; background: linear-gradient(135deg, #4285f412, #4285f408); color: #4285f4; font-size: 11px; font-weight: 500; text-decoration: none; cursor: pointer; border: 1px solid #4285f425; transition: all 0.2s var(--ease-out-expo); }
+    .gcal-link:hover { background: linear-gradient(135deg, #4285f420, #4285f412); transform: translateY(-1px); box-shadow: 0 4px 12px #4285f420; }
+    .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 8px; }
+    .photo-thumb { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+    .photo-thumb:hover { transform: scale(1.05); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+    .photo-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.92); display: flex; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(8px); animation: fadeIn 0.2s ease-out; }
+    .photo-modal img { max-width: 90%; max-height: 90%; border-radius: 12px; box-shadow: 0 24px 80px rgba(0,0,0,0.5); }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at 50% 0%, #1a1a2e 0%, #0a0a0f 70%); }
+    .login-card { background: linear-gradient(145deg, #1e1e2e, #16161f); border-radius: 24px; padding: 56px 48px; text-align: center; max-width: 420px; border: 1px solid #2a2a3e; box-shadow: 0 32px 80px rgba(0,0,0,0.5); animation: scaleIn 0.4s var(--ease-out-expo); }
+    .google-btn { display: inline-flex; align-items: center; gap: 14px; padding: 16px 32px; border-radius: 12px; border: none; background: white; color: #333; font-size: 15px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.15); transition: all 0.2s var(--ease-out-expo); }
+    .google-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
+    .user-avatar { width: 38px; height: 38px; border-radius: 12px; cursor: pointer; border: 2px solid transparent; background: linear-gradient(135deg, #6366f1, #8b5cf6) padding-box, linear-gradient(135deg, #6366f1, #8b5cf6) border-box; transition: all 0.2s var(--ease-out-expo); }
+    .user-avatar:hover { transform: scale(1.05); box-shadow: 0 4px 16px #6366f140; }
+    .quick-fab { position: fixed; bottom: 28px; right: 28px; z-index: 100; }
+    .quick-fab-btn { width: 60px; height: 60px; border-radius: 18px; border: none; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; font-size: 26px; cursor: pointer; box-shadow: 0 8px 32px rgba(99,102,241,0.4); transition: all 0.3s var(--ease-out-expo); }
+    .quick-fab-btn:hover { transform: scale(1.05); box-shadow: 0 12px 40px rgba(99,102,241,0.5); }
+    .quick-fab-menu { position: absolute; bottom: 76px; right: 0; display: flex; flex-direction: column; gap: 8px; animation: slideUp 0.3s var(--ease-out-expo); }
+    .quick-fab-item { padding: 12px 18px; border-radius: 12px; border: none; cursor: pointer; font-size: 13px; font-weight: 500; white-space: nowrap; display: flex; align-items: center; gap: 10px; transition: all 0.2s var(--ease-out-expo); box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+    .quick-fab-item:hover { transform: translateX(-4px); }
+    .global-search { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: flex; align-items: flex-start; justify-content: center; padding-top: 120px; z-index: 1500; backdrop-filter: blur(8px); animation: fadeIn 0.2s ease-out; }
+    .timeline { position: relative; padding-left: 28px; }
+    .timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, #6366f1, #8b5cf6, #6366f150); border-radius: 1px; }
+    .timeline-item { position: relative; padding-bottom: 20px; animation: slideUp 0.3s var(--ease-out-expo) backwards; }
+    .timeline-item::before { content: ''; position: absolute; left: -23px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 0 0 3px #6366f125; }
+    .heatmap { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+    .heatmap-cell { aspect-ratio: 1; border-radius: 3px; font-size: 8px; display: flex; align-items: center; justify-content: center; transition: transform 0.15s; }
+    .heatmap-cell:hover { transform: scale(1.2); z-index: 1; }
+    .checklist-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+    .checklist-box { width: 22px; height: 22px; border-radius: 6px; border: 2px solid #6366f1; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s var(--ease-out-expo); }
+    .checklist-box:hover { border-color: #8b5cf6; background: #6366f115; }
+    .checklist-box.checked { background: linear-gradient(135deg, #6366f1, #8b5cf6); border-color: transparent; }
+    .voice-recorder { display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 12px; }
+    .voice-btn { width: 52px; height: 52px; border-radius: 50%; border: none; cursor: pointer; font-size: 22px; transition: all 0.2s var(--ease-out-expo); }
+    .voice-btn.recording { background: linear-gradient(135deg, #ef4444, #dc2626); animation: pulse 1.2s ease-in-out infinite; }
+    @keyframes pulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 #ef444450; } 50% { transform: scale(1.05); box-shadow: 0 0 0 12px #ef444400; } }
+    .tab-nav { display: flex; gap: 4px; padding: 4px; background: rgba(0,0,0,0.2); border-radius: 12px; }
+    .tab-btn { padding: 8px 14px; border-radius: 8px; border: none; background: transparent; cursor: pointer; font-size: 12px; font-weight: 500; display: flex; align-items: center; gap: 6px; transition: all 0.2s var(--ease-out-expo); }
+    .tab-btn.active { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white !important; box-shadow: 0 4px 12px #6366f140; }
+    .card-hover { transition: all 0.2s var(--ease-out-expo); }
+    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.15); }
+    kbd { display: inline-flex; align-items: center; justify-content: center; padding: 3px 7px; border-radius: 5px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 500; }
+    .quick-note-toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); z-index: 1100; animation: slideUp 0.3s var(--ease-out-expo); }
+    .priority-high { border-left: 3px solid #ef4444 !important; }
+    .priority-medium { border-left: 3px solid #f59e0b !important; }
+    .priority-low { border-left: 3px solid #22c55e !important; }
+    @media (max-width: 768px) { .hide-mobile { display: none !important; } .quick-fab { bottom: 20px; right: 20px; } .quick-fab-btn { width: 54px; height: 54px; border-radius: 16px; } }
   </style>
 </head>
 <body class="dark">
@@ -120,6 +145,46 @@
       { id: 'email3', name: 'Gratulacje po obronie', subject: 'Gratulacje!', body: 'Szanowny/a {name},\n\nSerdecznie gratuluję pomyślnej obrony pracy!\n\nŻyczę wielu sukcesów.\n\nPozdrawiam' },
       { id: 'email4', name: 'Brak kontaktu', subject: 'Kontakt w sprawie pracy', body: 'Szanowny/a {name},\n\nDawno nie mieliśmy kontaktu w sprawie Twojej pracy.\n\nProszę o informację na jakim etapie jesteś.\n\nPozdrawiam' }
     ];
+
+    // ==================== AUTO REMINDER RULES ====================
+    const DEFAULT_AUTO_RULES = [
+      { id: 'rule1', name: 'Brak kontaktu', enabled: true, type: 'inactivity', days: 14, message: 'Brak kontaktu od {days} dni' },
+      { id: 'rule2', name: 'Koniec semestru', enabled: true, type: 'semester_end', daysBefore: 14, message: 'Do końca semestru zostało {days} dni - niezakończona praca' },
+      { id: 'rule3', name: 'Etap Recenzja', enabled: true, type: 'stage_reminder', stageId: 'stage6', daysInStage: 7, message: 'W etapie Recenzja od {days} dni' }
+    ];
+
+    // ==================== AUTO REMINDERS GENERATOR ====================
+    const generateAutoReminders = (students, stages, semesterDates, autoRules, existingReminders) => {
+      const generated = [], now = new Date();
+      students.forEach(student => {
+        if (student.stage === 'stage7') return;
+        autoRules.filter(r => r.enabled).forEach(rule => {
+          const existingKey = `auto_${rule.id}_${student.id}`;
+          if (existingReminders.some(r => r.autoKey === existingKey && !r.done)) return;
+          if (rule.type === 'inactivity') {
+            const lastMeeting = student.meetings?.length ? student.meetings.sort((a, b) => new Date(b.date) - new Date(a.date))[0] : null;
+            const lastDate = lastMeeting ? new Date(lastMeeting.date) : (student.stageHistory?.[0]?.date ? new Date(student.stageHistory[0].date) : null);
+            if (lastDate && daysSince(lastDate) >= rule.days) {
+              generated.push({ id: genId(), autoKey: existingKey, title: `${student.name}: ${rule.message.replace('{days}', daysSince(lastDate))}`, date: now, studentId: student.id, autoGenerated: true, ruleId: rule.id, done: false });
+            }
+          }
+          if (rule.type === 'semester_end' && semesterDates.end) {
+            const daysLeft = daysUntil(semesterDates.end);
+            if (daysLeft <= rule.daysBefore && daysLeft > 0) {
+              generated.push({ id: genId(), autoKey: existingKey, title: `${student.name}: ${rule.message.replace('{days}', daysLeft)}`, date: now, studentId: student.id, autoGenerated: true, ruleId: rule.id, done: false });
+            }
+          }
+          if (rule.type === 'stage_reminder' && student.stage === rule.stageId) {
+            const stageEntry = student.stageHistory?.filter(h => h.stageId === rule.stageId).sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+            if (stageEntry && daysSince(stageEntry.date) >= rule.daysInStage) {
+              generated.push({ id: genId(), autoKey: existingKey, title: `${student.name}: ${rule.message.replace('{days}', daysSince(stageEntry.date))}`, date: now, studentId: student.id, autoGenerated: true, ruleId: rule.id, done: false });
+            }
+          }
+        });
+      });
+      return generated;
+    };
+    const daysUntil = d => Math.floor((new Date(d) - new Date()) / 86400000);
 
     // ==================== UTILITIES ====================
     const genId = () => Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
@@ -594,65 +659,172 @@
     const QuickActions = ({ onAction }) => {
       const t = themes[useTheme().theme];
       const [open, setOpen] = useState(false);
-      const actions = [{ id: 'event', icon: '📅', label: 'Zajęcia' }, { id: 'student', icon: '🎓', label: 'Osoba' }, { id: 'reminder', icon: '⏰', label: 'Przypomnienie' }, { id: 'meeting', icon: '🤝', label: 'Spotkanie' }];
+      const actions = [{ id: 'quicknote', icon: '⚡', label: 'Szybka notatka' }, { id: 'event', icon: '📅', label: 'Zajęcia' }, { id: 'student', icon: '🎓', label: 'Osoba' }, { id: 'task', icon: '✓', label: 'Moje zadanie' }, { id: 'reminder', icon: '⏰', label: 'Przypomnienie' }, { id: 'meeting', icon: '🤝', label: 'Spotkanie' }];
       return (
         <div className="quick-fab">
           {open && <div className="quick-fab-menu">{actions.map(a => <button key={a.id} className="quick-fab-item" style={{ background: t.bg, color: t.text, border: `1px solid ${t.border}` }} onClick={() => { onAction(a.id); setOpen(false); }}><span>{a.icon}</span>{a.label}</button>)}</div>}
-          <button className="quick-fab-btn" onClick={() => setOpen(!open)} style={{ transform: open ? 'rotate(45deg)' : 'rotate(0)', transition: 'transform 0.2s' }}>+</button>
+          <button className="quick-fab-btn" onClick={() => setOpen(!open)} style={{ transform: open ? 'rotate(45deg)' : 'rotate(0)', transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}>+</button>
+        </div>
+      );
+    };
+    // ==================== QUICK NOTE PANEL ====================
+    const QuickNotePanel = ({ isOpen, onClose, students, onSave }) => {
+      const t = themes[useTheme().theme];
+      const [studentId, setStudentId] = useState('');
+      const [notes, setNotes] = useState('');
+      useEffect(() => { if (isOpen && students.length) setStudentId(students[0].id); if (!isOpen) { setNotes(''); } }, [isOpen, students]);
+      if (!isOpen) return null;
+      const handleSave = () => { if (!studentId || !notes.trim()) return; onSave(studentId, { date: new Date(), notes: notes.trim(), checkedItems: [] }); onClose(); };
+      return (
+        <div className="quick-note-toast">
+          <div style={{ background: t.bg, borderRadius: 20, border: `1px solid ${t.border}`, padding: 20, width: 380, boxShadow: `0 16px 48px rgba(0,0,0,0.3)` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: t.text, display: 'flex', alignItems: 'center', gap: 8 }}>⚡ Szybka notatka</h3>
+              <button onClick={onClose} style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer', fontSize: 18 }}>×</button>
+            </div>
+            <Select label="" value={studentId} onChange={setStudentId} options={students.map(s => ({ value: s.id, label: s.name }))} />
+            <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notatka ze spotkania..." style={{ width: '100%', padding: 14, borderRadius: 12, border: `1px solid ${t.border}`, background: t.bgAlt, color: t.text, fontSize: 14, fontFamily: 'inherit', resize: 'none', height: 100, marginBottom: 12 }} autoFocus />
+            <div style={{ display: 'flex', gap: 8 }}><Button onClick={onClose} variant="secondary" style={{ flex: 1 }}>Anuluj</Button><Button onClick={handleSave} disabled={!notes.trim()} style={{ flex: 1 }}>💾 Zapisz</Button></div>
+          </div>
         </div>
       );
     };
 
+    // ==================== MY TASKS VIEW ====================
+    const MyTasksView = ({ tasks, onAdd, onEdit, onDelete, onToggle }) => {
+      const t = themes[useTheme().theme];
+      const [filter, setFilter] = useState('active');
+      const filtered = useMemo(() => tasks.filter(task => { if (filter === 'active') return !task.done; if (filter === 'done') return task.done; return true; }).sort((a, b) => { if (a.done !== b.done) return a.done ? 1 : -1; const priorityOrder = { high: 0, medium: 1, low: 2 }; if (priorityOrder[a.priority] !== priorityOrder[b.priority]) return priorityOrder[a.priority] - priorityOrder[b.priority]; return new Date(a.dueDate || '9999') - new Date(b.dueDate || '9999'); }), [tasks, filter]);
+      const stats = useMemo(() => ({ total: tasks.length, done: tasks.filter(t => t.done).length, overdue: tasks.filter(t => !t.done && t.dueDate && isPast(t.dueDate)).length, today: tasks.filter(t => !t.done && t.dueDate && isToday(t.dueDate)).length }), [tasks]);
+      const priorityColors = { high: t.danger, medium: t.warning, low: t.success };
+      const priorityLabels = { high: 'Wysoki', medium: 'Średni', low: 'Niski' };
+      return (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+            <h2 style={{ color: t.text, margin: 0, display: 'flex', alignItems: 'center', gap: 12 }}><span style={{ fontSize: 28 }}>✓</span><div><div style={{ fontSize: 20, fontWeight: 700 }}>Moje zadania</div><div style={{ fontSize: 13, fontWeight: 400, color: t.textMuted }}>{stats.done}/{stats.total} ukończonych</div></div></h2>
+            <Button onClick={onAdd}>➕ Dodaj zadanie</Button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 24 }}>
+            <StatCard value={stats.total - stats.done} label="Do zrobienia" icon="📋" color={t.primary} />
+            <StatCard value={stats.overdue} label="Zaległych" icon="⚠️" color={stats.overdue > 0 ? t.danger : t.textDim} />
+            <StatCard value={stats.today} label="Na dziś" icon="📅" color={t.warning} />
+            <StatCard value={stats.done} label="Gotowych" icon="✓" color={t.success} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <div className="tab-nav" style={{ background: t.bgAlt }}>{['active', 'done', 'all'].map(f => (<button key={f} className={`tab-btn ${filter === f ? 'active' : ''}`} onClick={() => setFilter(f)} style={{ color: filter === f ? 'white' : t.textMuted }}>{f === 'active' ? 'Aktywne' : f === 'done' ? 'Gotowe' : 'Wszystkie'}</button>))}</div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {!filtered.length ? (<Card style={{ textAlign: 'center', padding: 40, color: t.textDim }}><div style={{ fontSize: 40, marginBottom: 12 }}>🎉</div><div>Brak zadań {filter === 'active' ? 'do zrobienia' : ''}</div></Card>) : filtered.map(task => {
+              const isOverdue = !task.done && task.dueDate && isPast(task.dueDate);
+              const isTodayTask = !task.done && task.dueDate && isToday(task.dueDate);
+              return (<Card key={task.id} className={`card-hover priority-${task.priority || 'low'}`} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 14, opacity: task.done ? 0.6 : 1, borderColor: isOverdue ? t.danger : isTodayTask ? t.warning : t.border }}>
+                <button onClick={() => onToggle(task.id)} style={{ width: 24, height: 24, borderRadius: 8, border: `2px solid ${task.done ? t.success : t.textDim}`, background: task.done ? t.success : 'transparent', cursor: 'pointer', color: 'white', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{task.done && '✓'}</button>
+                <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontWeight: 500, textDecoration: task.done ? 'line-through' : 'none', fontSize: 14, marginBottom: 4, color: t.text }}>{task.title}</div><div style={{ display: 'flex', gap: 10, fontSize: 11, color: t.textDim, flexWrap: 'wrap' }}>{task.dueDate && <span style={{ color: isOverdue ? t.danger : isTodayTask ? t.warning : t.textDim }}>📅 {fmtDate(task.dueDate)}</span>}<span style={{ color: priorityColors[task.priority || 'low'] }}>● {priorityLabels[task.priority || 'low']}</span>{task.category && <span>📁 {task.category}</span>}</div></div>
+                <Button onClick={() => onEdit(task)} variant="ghost" size="sm">✏️</Button>
+                <Button onClick={() => { if (confirm('Usunąć?')) onDelete(task.id); }} variant="ghost" size="sm">🗑️</Button>
+              </Card>);
+            })}
+          </div>
+        </div>
+      );
+    };
+
+    // ==================== TASK MODAL ====================
+    const TaskModal = ({ isOpen, onClose, task, onSave }) => {
+      const t = themes[useTheme().theme];
+      const [form, setForm] = useState({ title: '', dueDate: '', priority: 'medium', category: '', notes: '', done: false });
+      useEffect(() => { if (task) { setForm({ ...task, dueDate: task.dueDate ? new Date(task.dueDate).toISOString().slice(0, 10) : '' }); } else { const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1); setForm({ title: '', dueDate: tomorrow.toISOString().slice(0, 10), priority: 'medium', category: '', notes: '', done: false }); } }, [task]);
+      const categories = ['Przeczytać', 'Napisać recenzję', 'Sprawdzić', 'Skontaktować się', 'Administracja', 'Inne'];
+      return (<Modal isOpen={isOpen} onClose={onClose} title={task ? 'Edytuj zadanie' : 'Nowe zadanie'}><Input label="Tytuł" value={form.title} onChange={v => setForm({ ...form, title: v })} placeholder="np. Przeczytać rozdział 2 - Kowalski" /><div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}><Input label="Termin" type="date" value={form.dueDate} onChange={v => setForm({ ...form, dueDate: v })} /><Select label="Priorytet" value={form.priority} onChange={v => setForm({ ...form, priority: v })} options={[{ value: 'high', label: '🔴 Wysoki' }, { value: 'medium', label: '🟡 Średni' }, { value: 'low', label: '🟢 Niski' }]} /></div><Select label="Kategoria" value={form.category} onChange={v => setForm({ ...form, category: v })} options={[{ value: '', label: '— Wybierz —' }, ...categories.map(c => ({ value: c, label: c }))]} /><Input label="Notatki" value={form.notes} onChange={v => setForm({ ...form, notes: v })} multiline rows={2} /><div style={{ display: 'flex', gap: 10 }}><Button onClick={onClose} variant="secondary" style={{ flex: 1 }}>Anuluj</Button><Button onClick={() => { if (form.title.trim()) onSave({ ...task, ...form, dueDate: form.dueDate ? new Date(form.dueDate) : null }); }} disabled={!form.title.trim()} style={{ flex: 1 }}>Zapisz</Button></div></Modal>);
+    };
+
+    // ==================== AUTO RULES MODAL ====================
+    const AutoRulesModal = ({ isOpen, onClose, rules, stages, onSave }) => {
+      const t = themes[useTheme().theme];
+      const [local, setLocal] = useState([]);
+      useEffect(() => { setLocal([...rules]); }, [rules]);
+      const toggleRule = (id) => { setLocal(local.map(r => r.id === id ? { ...r, enabled: !r.enabled } : r)); };
+      const updateRule = (id, field, value) => { setLocal(local.map(r => r.id === id ? { ...r, [field]: value } : r)); };
+      return (<Modal isOpen={isOpen} onClose={onClose} title="Automatyczne przypomnienia" width="550px">
+        <p style={{ marginBottom: 20, fontSize: 13, color: t.textMuted }}>Skonfiguruj reguły automatycznego tworzenia przypomnień. System będzie generował przypomnienia na podstawie poniższych warunków.</p>
+        {local.map(rule => (<Card key={rule.id} style={{ marginBottom: 12, padding: 16, borderColor: rule.enabled ? t.primary + '50' : t.border, background: rule.enabled ? t.primaryBg : t.bg }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: rule.enabled ? 12 : 0 }}>
+            <button onClick={() => toggleRule(rule.id)} style={{ width: 44, height: 24, borderRadius: 12, border: 'none', background: rule.enabled ? t.gradient : t.bgAlt, cursor: 'pointer', position: 'relative' }}><div style={{ width: 18, height: 18, borderRadius: '50%', background: 'white', position: 'absolute', top: 3, left: rule.enabled ? 23 : 3, transition: 'left 0.2s', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }} /></button>
+            <div style={{ flex: 1 }}><div style={{ fontWeight: 600, fontSize: 14, color: t.text }}>{rule.name}</div><div style={{ fontSize: 12, color: t.textDim }}>{rule.type === 'inactivity' ? 'Brak kontaktu' : rule.type === 'semester_end' ? 'Koniec semestru' : 'Etap pracy'}</div></div>
+          </div>
+          {rule.enabled && (<div style={{ paddingLeft: 56 }}>
+            {rule.type === 'inactivity' && (<div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}><span style={{ color: t.textMuted }}>Po</span><input type="number" value={rule.days} onChange={e => updateRule(rule.id, 'days', parseInt(e.target.value) || 14)} style={{ width: 60, padding: '6px 10px', borderRadius: 8, border: `1px solid ${t.border}`, background: t.bgAlt, color: t.text, fontSize: 13, textAlign: 'center' }} /><span style={{ color: t.textMuted }}>dniach bez kontaktu</span></div>)}
+            {rule.type === 'semester_end' && (<div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}><input type="number" value={rule.daysBefore} onChange={e => updateRule(rule.id, 'daysBefore', parseInt(e.target.value) || 14)} style={{ width: 60, padding: '6px 10px', borderRadius: 8, border: `1px solid ${t.border}`, background: t.bgAlt, color: t.text, fontSize: 13, textAlign: 'center' }} /><span style={{ color: t.textMuted }}>dni przed końcem semestru</span></div>)}
+            {rule.type === 'stage_reminder' && (<div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, flexWrap: 'wrap' }}><span style={{ color: t.textMuted }}>Etap:</span><select value={rule.stageId} onChange={e => updateRule(rule.id, 'stageId', e.target.value)} style={{ padding: '6px 10px', borderRadius: 8, border: `1px solid ${t.border}`, background: t.bgAlt, color: t.text, fontSize: 13 }}>{stages.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}</select><span style={{ color: t.textMuted }}>po</span><input type="number" value={rule.daysInStage} onChange={e => updateRule(rule.id, 'daysInStage', parseInt(e.target.value) || 7)} style={{ width: 60, padding: '6px 10px', borderRadius: 8, border: `1px solid ${t.border}`, background: t.bgAlt, color: t.text, fontSize: 13, textAlign: 'center' }} /><span style={{ color: t.textMuted }}>dniach</span></div>)}
+          </div>)}
+        </Card>))}
+        <div style={{ display: 'flex', gap: 10, marginTop: 20 }}><Button onClick={onClose} variant="secondary" style={{ flex: 1 }}>Anuluj</Button><Button onClick={() => { onSave(local); onClose(); }} style={{ flex: 1 }}>Zapisz</Button></div>
+      </Modal>);
+    };
+
     // ==================== VIEWS ====================
-    const TodayView = ({ events, reminders, students, stages, inactivityDays, onEventClick, onReminderClick, onStudentClick }) => {
+    const TodayView = ({ events, reminders, students, stages, inactivityDays, tasks, onEventClick, onReminderClick, onStudentClick, onQuickNote, onTaskToggle }) => {
       const t = themes[useTheme().theme];
       const today = new Date();
       const todayEvents = events.filter(e => isToday(e.start)).sort((a, b) => new Date(a.start) - new Date(b.start));
       const todayRem = reminders.filter(r => !r.done && isToday(r.date));
       const overdueRem = reminders.filter(r => !r.done && isPast(r.date));
-      const needsContact = students.filter(s => { const last = s.meetings?.length ? s.meetings.sort((a, b) => new Date(b.date) - new Date(a.date))[0] : null; return last && daysSince(last.date) > inactivityDays; });
+      const todayTasks = (tasks || []).filter(t => !t.done && t.dueDate && isToday(t.dueDate));
+      const overdueTasks = (tasks || []).filter(t => !t.done && t.dueDate && isPast(t.dueDate));
+      const needsContact = students.filter(s => { if (s.stage === 'stage7') return false; const last = s.meetings?.length ? s.meetings.sort((a, b) => new Date(b.date) - new Date(a.date))[0] : null; return last && daysSince(last.date) > inactivityDays; });
 
       return (
         <div>
-          <h2 style={{ color: t.text, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{ fontSize: 32 }}>☀️</span>
-            <div><div>Dzisiejszy dzień</div><div style={{ fontSize: 14, fontWeight: 400, color: t.textMuted }}>{today.toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long' })}</div></div>
-          </h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
+            <h2 style={{ color: t.text, margin: 0, display: 'flex', alignItems: 'center', gap: 14 }}>
+              <span style={{ fontSize: 36 }}>☀️</span>
+              <div><div style={{ fontSize: 22, fontWeight: 700 }}>Dzień dobry!</div><div style={{ fontSize: 14, fontWeight: 400, color: t.textMuted, marginTop: 2 }}>{today.toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div></div>
+            </h2>
+            <Button onClick={onQuickNote} variant="secondary">⚡ Szybka notatka</Button>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
             <Card style={{ padding: 0 }}>
-              <div style={{ padding: '14px 18px', borderBottom: `1px solid ${t.border}`, display: 'flex', justifyContent: 'space-between' }}><h3 style={{ margin: 0, fontSize: 14, color: t.text }}>📅 Dzisiejsze zajęcia</h3><Badge>{todayEvents.length}</Badge></div>
-              <div style={{ padding: 12 }}>
-                {!todayEvents.length ? <div style={{ padding: 16, textAlign: 'center', color: t.textDim }}>Brak zajęć</div> : todayEvents.map(e => (
-                  <div key={e.id} onClick={() => onEventClick(e)} style={{ padding: 10, borderRadius: 8, marginBottom: 6, background: t.bgAlt, cursor: 'pointer', borderLeft: `3px solid ${t.primary}` }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ fontWeight: 600, color: t.text, marginBottom: 2 }}>{e.title}</div>
-                      <GCalButton event={e} />
-                    </div>
-                    <div style={{ fontSize: 12, color: t.textMuted }}>{fmtTime(e.start)} - {fmtTime(e.end)}</div>
+              <div style={{ padding: '16px 20px', borderBottom: `1px solid ${t.border}`, display: 'flex', justifyContent: 'space-between' }}><h3 style={{ margin: 0, fontSize: 14, color: t.text, fontWeight: 600 }}>📅 Dzisiejsze zajęcia</h3><Badge>{todayEvents.length}</Badge></div>
+              <div style={{ padding: 12, maxHeight: 280, overflowY: 'auto' }}>
+                {!todayEvents.length ? <div style={{ padding: 20, textAlign: 'center', color: t.textDim }}><div style={{ fontSize: 28, marginBottom: 8 }}>🏖️</div>Brak zajęć</div> : todayEvents.map(e => (
+                  <div key={e.id} onClick={() => onEventClick(e)} style={{ padding: 12, borderRadius: 10, marginBottom: 6, background: t.bgAlt, cursor: 'pointer', borderLeft: `3px solid ${t.primary}` }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><div style={{ fontWeight: 600, color: t.text, marginBottom: 2, fontSize: 14 }}>{e.title}</div><GCalButton event={e} /></div>
+                    <div style={{ fontSize: 12, color: t.textMuted }}>{fmtTime(e.start)} — {fmtTime(e.end)}</div>
                     {e.location && <div style={{ fontSize: 11, color: t.textDim, marginTop: 2 }}>📍 {e.location}</div>}
                   </div>
                 ))}
               </div>
             </Card>
             <Card style={{ padding: 0 }}>
-              <div style={{ padding: '14px 18px', borderBottom: `1px solid ${t.border}`, display: 'flex', justifyContent: 'space-between' }}><h3 style={{ margin: 0, fontSize: 14, color: t.text }}>⏰ Przypomnienia</h3>{overdueRem.length > 0 && <Badge color={t.danger}>{overdueRem.length} zaległych</Badge>}</div>
-              <div style={{ padding: 12 }}>
-                {!overdueRem.length && !todayRem.length ? <div style={{ padding: 16, textAlign: 'center', color: t.textDim }}>Brak</div> : (
+              <div style={{ padding: '16px 20px', borderBottom: `1px solid ${t.border}`, display: 'flex', justifyContent: 'space-between' }}><h3 style={{ margin: 0, fontSize: 14, color: t.text, fontWeight: 600 }}>✓ Moje zadania</h3>{overdueTasks.length > 0 && <Badge color={t.danger}>{overdueTasks.length} zaległych</Badge>}</div>
+              <div style={{ padding: 12, maxHeight: 280, overflowY: 'auto' }}>
+                {!overdueTasks.length && !todayTasks.length ? <div style={{ padding: 20, textAlign: 'center', color: t.textDim }}><div style={{ fontSize: 28, marginBottom: 8 }}>✨</div>Wszystko zrobione!</div> : (
                   <>
-                    {overdueRem.map(r => <div key={r.id} onClick={() => onReminderClick(r)} style={{ padding: 10, borderRadius: 8, marginBottom: 6, background: t.danger + '11', cursor: 'pointer', borderLeft: `3px solid ${t.danger}` }}><div style={{ fontWeight: 600, color: t.danger }}>{r.title}</div><div style={{ fontSize: 11, color: t.danger }}>⚠️ Zaległe od {fmtDate(r.date)}</div></div>)}
-                    {todayRem.map(r => <div key={r.id} onClick={() => onReminderClick(r)} style={{ padding: 10, borderRadius: 8, marginBottom: 6, background: t.warning + '11', cursor: 'pointer', borderLeft: `3px solid ${t.warning}` }}><div style={{ fontWeight: 600, color: t.text }}>{r.title}</div><div style={{ fontSize: 11, color: t.warning }}>Na dziś</div></div>)}
+                    {overdueTasks.map(task => (<div key={task.id} style={{ padding: 10, borderRadius: 10, marginBottom: 6, background: t.danger + '15', display: 'flex', alignItems: 'center', gap: 10, borderLeft: `3px solid ${t.danger}` }}><button onClick={() => onTaskToggle(task.id)} style={{ width: 20, height: 20, borderRadius: 6, border: `2px solid ${t.danger}`, background: 'transparent', cursor: 'pointer', flexShrink: 0 }} /><div style={{ flex: 1 }}><div style={{ fontWeight: 500, color: t.danger, fontSize: 13 }}>{task.title}</div><div style={{ fontSize: 10, color: t.danger }}>⚠️ Zaległe od {fmtDate(task.dueDate)}</div></div></div>))}
+                    {todayTasks.map(task => (<div key={task.id} style={{ padding: 10, borderRadius: 10, marginBottom: 6, background: t.warning + '15', display: 'flex', alignItems: 'center', gap: 10, borderLeft: `3px solid ${t.warning}` }}><button onClick={() => onTaskToggle(task.id)} style={{ width: 20, height: 20, borderRadius: 6, border: `2px solid ${t.warning}`, background: 'transparent', cursor: 'pointer', flexShrink: 0 }} /><div style={{ flex: 1 }}><div style={{ fontWeight: 500, color: t.text, fontSize: 13 }}>{task.title}</div><div style={{ fontSize: 10, color: t.warning }}>Na dziś</div></div></div>))}
                   </>
                 )}
               </div>
             </Card>
             <Card style={{ padding: 0 }}>
-              <div style={{ padding: '14px 18px', borderBottom: `1px solid ${t.border}`, display: 'flex', justifyContent: 'space-between' }}><h3 style={{ margin: 0, fontSize: 14, color: t.text }}>⚠️ Wymagają kontaktu</h3><Badge color={t.warning}>{needsContact.length}</Badge></div>
-              <div style={{ padding: 12 }}>
-                {!needsContact.length ? <div style={{ padding: 16, textAlign: 'center', color: t.textDim }}>Wszyscy na bieżąco 👍</div> : needsContact.slice(0, 5).map(s => {
+              <div style={{ padding: '16px 20px', borderBottom: `1px solid ${t.border}`, display: 'flex', justifyContent: 'space-between' }}><h3 style={{ margin: 0, fontSize: 14, color: t.text, fontWeight: 600 }}>⏰ Przypomnienia</h3>{overdueRem.length > 0 && <Badge color={t.danger}>{overdueRem.length} zaległych</Badge>}</div>
+              <div style={{ padding: 12, maxHeight: 280, overflowY: 'auto' }}>
+                {!overdueRem.length && !todayRem.length ? <div style={{ padding: 20, textAlign: 'center', color: t.textDim }}><div style={{ fontSize: 28, marginBottom: 8 }}>👍</div>Brak</div> : (
+                  <>
+                    {overdueRem.map(r => <div key={r.id} onClick={() => onReminderClick(r)} style={{ padding: 10, borderRadius: 10, marginBottom: 6, background: t.danger + '11', cursor: 'pointer', borderLeft: `3px solid ${t.danger}` }}><div style={{ fontWeight: 600, color: t.danger, fontSize: 13 }}>{r.title}</div><div style={{ fontSize: 10, color: t.danger }}>⚠️ Zaległe od {fmtDate(r.date)}</div>{r.autoGenerated && <Badge color={t.primary} size="sm">Auto</Badge>}</div>)}
+                    {todayRem.map(r => <div key={r.id} onClick={() => onReminderClick(r)} style={{ padding: 10, borderRadius: 10, marginBottom: 6, background: t.warning + '11', cursor: 'pointer', borderLeft: `3px solid ${t.warning}` }}><div style={{ fontWeight: 600, color: t.text, fontSize: 13 }}>{r.title}</div><div style={{ fontSize: 10, color: t.warning }}>Na dziś</div></div>)}
+                  </>
+                )}
+              </div>
+            </Card>
+            <Card style={{ padding: 0 }}>
+              <div style={{ padding: '16px 20px', borderBottom: `1px solid ${t.border}`, display: 'flex', justifyContent: 'space-between' }}><h3 style={{ margin: 0, fontSize: 14, color: t.text, fontWeight: 600 }}>⚠️ Wymagają kontaktu</h3><Badge color={t.warning}>{needsContact.length}</Badge></div>
+              <div style={{ padding: 12, maxHeight: 280, overflowY: 'auto' }}>
+                {!needsContact.length ? <div style={{ padding: 20, textAlign: 'center', color: t.textDim }}><div style={{ fontSize: 28, marginBottom: 8 }}>🤝</div>Wszyscy na bieżąco!</div> : needsContact.slice(0, 5).map(s => {
                   const last = s.meetings?.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
                   const stage = stages.find(st => st.id === s.stage);
-                  return <div key={s.id} onClick={() => onStudentClick(s)} style={{ padding: 10, borderRadius: 8, marginBottom: 6, background: t.bgAlt, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: stage?.color + '33', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, color: stage?.color, fontSize: 12 }}>{s.name.split(' ').map(n => n[0]).join('')}</div>
+                  return <div key={s.id} onClick={() => onStudentClick(s)} style={{ padding: 10, borderRadius: 10, marginBottom: 6, background: t.bgAlt, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 34, height: 34, borderRadius: 10, background: stage?.color + '33', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, color: stage?.color, fontSize: 12 }}>{s.name.split(' ').map(n => n[0]).join('')}</div>
                     <div style={{ flex: 1 }}><div style={{ fontWeight: 500, color: t.text, fontSize: 13 }}>{s.name}</div><div style={{ fontSize: 11, color: t.warning }}>{daysSince(last?.date)} dni bez kontaktu</div></div>
                   </div>;
                 })}
@@ -893,23 +1065,24 @@
       );
     };
 
-    const RemindersView = ({ reminders, events, students, onAdd, onEdit, onDelete, onToggle }) => {
+    const RemindersView = ({ reminders, events, students, onAdd, onEdit, onDelete, onToggle, onOpenAutoRules }) => {
       const t = themes[useTheme().theme];
       const [filter, setFilter] = useState('active');
       const filtered = useMemo(() => reminders.filter(r => { if (filter === 'active') return !r.done; if (filter === 'done') return r.done; return true; }).sort((a, b) => { if (a.done !== b.done) return a.done ? 1 : -1; return new Date(a.date) - new Date(b.date); }), [reminders, filter]);
-      const stats = useMemo(() => ({ overdue: reminders.filter(r => !r.done && isPast(r.date)).length, today: reminders.filter(r => !r.done && isToday(r.date)).length, upcoming: reminders.filter(r => !r.done && !isPast(r.date) && !isToday(r.date)).length, done: reminders.filter(r => r.done).length }), [reminders]);
+      const stats = useMemo(() => ({ overdue: reminders.filter(r => !r.done && isPast(r.date)).length, today: reminders.filter(r => !r.done && isToday(r.date)).length, upcoming: reminders.filter(r => !r.done && !isPast(r.date) && !isToday(r.date)).length, done: reminders.filter(r => r.done).length, auto: reminders.filter(r => r.autoGenerated && !r.done).length }), [reminders]);
 
       return (
         <div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 18 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12, marginBottom: 18 }}>
             <StatCard value={stats.overdue} label="Zaległych" color={stats.overdue > 0 ? t.danger : t.textDim} icon="⚠️" />
             <StatCard value={stats.today} label="Na dziś" color={t.warning} icon="📅" />
             <StatCard value={stats.upcoming} label="Nadchodzących" color={t.primary} icon="🔜" />
+            <StatCard value={stats.auto} label="Automatycznych" color={t.primary} icon="🤖" />
             <StatCard value={stats.done} label="Gotowych" color={t.success} icon="✓" />
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-            <div style={{ display: 'flex', gap: 4 }}>{['active', 'done', 'all'].map(f => <button key={f} onClick={() => setFilter(f)} style={{ padding: '6px 12px', borderRadius: 6, border: `1px solid ${t.border}`, background: filter === f ? t.primary : 'transparent', color: filter === f ? 'white' : t.textMuted, cursor: 'pointer', fontSize: 12 }}>{f === 'active' ? 'Aktywne' : f === 'done' ? 'Gotowe' : 'Wszystkie'}</button>)}</div>
-            <Button onClick={onAdd} size="sm">➕ Przypomnienie</Button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
+            <div className="tab-nav" style={{ background: t.bgAlt }}>{['active', 'done', 'all'].map(f => <button key={f} className={`tab-btn ${filter === f ? 'active' : ''}`} onClick={() => setFilter(f)} style={{ color: filter === f ? 'white' : t.textMuted }}>{f === 'active' ? 'Aktywne' : f === 'done' ? 'Gotowe' : 'Wszystkie'}</button>)}</div>
+            <div style={{ display: 'flex', gap: 8 }}><Button onClick={onOpenAutoRules} variant="secondary" size="sm">🤖 Auto-reguły</Button><Button onClick={onAdd} size="sm">➕ Przypomnienie</Button></div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {!filtered.length ? <Card style={{ textAlign: 'center', padding: 28, color: t.textDim }}>Brak</Card> : filtered.map(rem => {
@@ -989,7 +1162,7 @@
     // ==================== LOGIN & USER ====================
     const GoogleIcon = () => <svg viewBox="0 0 24 24" style={{ width: 20, height: 20 }}><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>;
 
-    const LoginScreen = ({ onLogin, isFirebaseConfigured }) => <div className="login-screen"><div className="login-card"><h1 style={{ fontSize: 48, marginBottom: 16 }}>📚</h1><h2 style={{ color: '#e2e2e9', marginBottom: 8 }}>Dydaktyka v4.0</h2><p style={{ color: '#9ca3af', marginBottom: 32, fontSize: 14 }}>Kompleksowe zarządzanie dydaktyką</p>{isFirebaseConfigured ? <button className="google-btn" onClick={onLogin}><GoogleIcon />Zaloguj przez Google</button> : <div style={{ color: '#f59e0b', fontSize: 14, padding: 16, background: '#f59e0b11', borderRadius: 8 }}>⚠️ Firebase nie skonfigurowany</div>}<p style={{ color: '#6b7280', marginTop: 24, fontSize: 12 }}>Autor: Jakub Kuś</p></div></div>;
+    const LoginScreen = ({ onLogin, isFirebaseConfigured }) => <div className="login-screen"><div className="login-card"><h1 style={{ fontSize: 56, marginBottom: 20 }}>📚</h1><h2 style={{ color: '#e2e2e9', marginBottom: 8, fontSize: 26, fontWeight: 700 }}>Dydaktyka</h2><p style={{ color: '#9ca3af', marginBottom: 8, fontSize: 13 }}>v6.0</p><p style={{ color: '#9ca3af', marginBottom: 32, fontSize: 14 }}>Kompleksowe zarządzanie dydaktyką</p>{isFirebaseConfigured ? <button className="google-btn" onClick={onLogin}><GoogleIcon />Zaloguj przez Google</button> : <div style={{ color: '#f59e0b', fontSize: 14, padding: 16, background: '#f59e0b11', borderRadius: 8 }}>⚠️ Firebase nie skonfigurowany</div>}<p style={{ color: '#6b7280', marginTop: 24, fontSize: 12 }}>Autor: Jakub Kuś</p></div></div>;
 
     const UserMenu = ({ user, onSignOut }) => { const [open, setOpen] = useState(false); const t = themes[useTheme().theme]; return <div style={{ position: 'relative' }}><img src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName || 'U'}&background=6366f1&color=fff`} alt="" className="user-avatar" onClick={() => setOpen(!open)} />{open && <><div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setOpen(false)} /><div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 8, background: t.bg, border: `1px solid ${t.border}`, borderRadius: 8, minWidth: 180, zIndex: 100 }}><div style={{ padding: 10, borderBottom: `1px solid ${t.border}` }}><div style={{ fontWeight: 600, color: t.text, fontSize: 13 }}>{user.displayName || 'Użytkownik'}</div><div style={{ fontSize: 11, color: t.textMuted }}>{user.email}</div></div><button onClick={() => { onSignOut(); setOpen(false); }} style={{ display: 'block', width: '100%', padding: 10, border: 'none', background: 'none', color: t.text, textAlign: 'left', cursor: 'pointer', fontSize: 13 }}>🚪 Wyloguj</button></div></>}</div>; };
 
@@ -1024,11 +1197,17 @@
       const [showTimeline, setShowTimeline] = useState(false);
       const [showSearch, setShowSearch] = useState(false);
       const [showEmail, setShowEmail] = useState(false);
+      const [showQuickNote, setShowQuickNote] = useState(false);
+      const [showTask, setShowTask] = useState(false);
+      const [showAutoRules, setShowAutoRules] = useState(false);
       const [emailTemplates] = useState(DEFAULT_EMAIL_TEMPLATES);
+      const [tasks, setTasks] = useState([]);
+      const [autoRules, setAutoRules] = useState(DEFAULT_AUTO_RULES);
 
       const [editEvent, setEditEvent] = useState(null);
       const [editStudent, setEditStudent] = useState(null);
       const [editReminder, setEditReminder] = useState(null);
+      const [editTask, setEditTask] = useState(null);
       const [meetingStudent, setMeetingStudent] = useState(null);
       const [timelineStudent, setTimelineStudent] = useState(null);
       const [emailStudent, setEmailStudent] = useState(null);
@@ -1038,9 +1217,21 @@
       const { status, upload, uploadAudio, delFile, save, del, subscribe } = useFirebase(user?.uid);
 
       useEffect(() => { document.body.className = theme; }, [theme]);
-      useEffect(() => { const h = e => { if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); setShowSearch(true); } if (e.key === 'Escape') setShowSearch(false); }; window.addEventListener('keydown', h); return () => window.removeEventListener('keydown', h); }, []);
+      useEffect(() => { const h = e => { if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); setShowSearch(true); } if (e.key === 'Escape') setShowSearch(false); }; window.addEventListener('keydown', h); return () => window.removeEventListener('keydown', h); }, []);
 
-      useEffect(() => { if (!user?.uid || !isFirebaseConfigured) return; const unsubs = [subscribe('subjects', d => d.length && setSubjects(d)), subscribe('events', d => d.length && setEvents(d.map(e => ({ ...e, photos: e.photos || [] })))), subscribe('students', d => d.length && setStudents(d)), subscribe('reminders', d => d.length && setReminders(d)), subscribe('archives', d => setArchives(d)), subscribe('settings', d => { const s = d.find(x => x.id === 'main'); if (s) { if (s.stages) setStages(s.stages); if (s.templates) setTemplates(s.templates); if (s.semesterDates) setSemesterDates(s.semesterDates); if (s.inactivityDays) setInactivityDays(s.inactivityDays); }})]; return () => unsubs.forEach(u => u()); }, [user?.uid, isFirebaseConfigured]);
+      useEffect(() => { if (!user?.uid || !isFirebaseConfigured) return; const unsubs = [subscribe('subjects', d => d.length && setSubjects(d)), subscribe('events', d => d.length && setEvents(d.map(e => ({ ...e, photos: e.photos || [] })))), subscribe('students', d => d.length && setStudents(d)), subscribe('reminders', d => d.length && setReminders(d)), subscribe('tasks', d => setTasks(d)), subscribe('archives', d => setArchives(d)), subscribe('settings', d => { const s = d.find(x => x.id === 'main'); if (s) { if (s.stages) setStages(s.stages); if (s.templates) setTemplates(s.templates); if (s.autoRules) setAutoRules(s.autoRules); if (s.semesterDates) setSemesterDates(s.semesterDates); if (s.inactivityDays) setInactivityDays(s.inactivityDays); }})]; return () => unsubs.forEach(u => u()); }, [user?.uid, isFirebaseConfigured]);
+
+      // Auto-generate reminders
+      useEffect(() => {
+        if (!students.length || !autoRules.length) return;
+        const autoReminders = generateAutoReminders(students, stages, semesterDates, autoRules, reminders);
+        autoReminders.forEach(async (r) => {
+          if (!reminders.some(ex => ex.autoKey === r.autoKey)) {
+            setReminders(prev => [...prev, r]);
+            if (isFirebaseConfigured && user) await save('reminders', r.id, r);
+          }
+        });
+      }, [students, stages, semesterDates, autoRules]);
 
       const saveSubject = async sub => { const id = sub.id || genId(), data = { ...sub, id }; sub.id ? setSubjects(subjects.map(s => s.id === sub.id ? data : s)) : setSubjects([...subjects, data]); if (isFirebaseConfigured && user) await save('subjects', id, data); };
       const delSubject = async id => { setSubjects(subjects.filter(s => s.id !== id)); setEvents(events.map(e => e.subjectId === id ? { ...e, subjectId: null } : e)); if (isFirebaseConfigured && user) await del('subjects', id); };
@@ -1053,7 +1244,15 @@
       const saveReminder = async rem => { const id = rem.id || genId(), data = { ...rem, id }; rem.id ? setReminders(reminders.map(r => r.id === rem.id ? data : r)) : setReminders([...reminders, data]); setShowReminder(false); setEditReminder(null); if (isFirebaseConfigured && user) await save('reminders', id, data); };
       const delReminder = async id => { setReminders(reminders.filter(r => r.id !== id)); if (isFirebaseConfigured && user) await del('reminders', id); };
       const toggleReminder = async id => { const r = reminders.find(x => x.id === id); if (!r) return; const data = { ...r, done: !r.done }; setReminders(reminders.map(x => x.id === id ? data : x)); if (isFirebaseConfigured && user) await save('reminders', id, data); };
-      const saveStages = async newStages => { setStages(newStages); if (isFirebaseConfigured && user) await save('settings', 'main', { stages: newStages, templates, semesterDates, inactivityDays }); };
+      
+      // Tasks functions
+      const saveTask = async task => { const id = task.id || genId(), data = { ...task, id }; task.id ? setTasks(tasks.map(t => t.id === task.id ? data : t)) : setTasks([...tasks, data]); setShowTask(false); setEditTask(null); if (isFirebaseConfigured && user) await save('tasks', id, data); };
+      const delTask = async id => { setTasks(tasks.filter(t => t.id !== id)); if (isFirebaseConfigured && user) await del('tasks', id); };
+      const toggleTask = async id => { const t = tasks.find(x => x.id === id); if (!t) return; const data = { ...t, done: !t.done }; setTasks(tasks.map(x => x.id === id ? data : x)); if (isFirebaseConfigured && user) await save('tasks', id, data); };
+      
+      const saveAutoRules = async newRules => { setAutoRules(newRules); if (isFirebaseConfigured && user) await save('settings', 'main', { stages, templates, autoRules: newRules, semesterDates, inactivityDays }); };
+      
+      const saveStages = async newStages => { setStages(newStages); if (isFirebaseConfigured && user) await save('settings', 'main', { stages: newStages, templates, autoRules, semesterDates, inactivityDays }); };
       const saveSettings = async (sem, days, tpls) => { if (sem) setSemesterDates(sem); if (days) setInactivityDays(days); if (tpls) setTemplates(tpls); if (isFirebaseConfigured && user) await save('settings', 'main', { stages, templates: tpls || templates, semesterDates: sem || semesterDates, inactivityDays: days || inactivityDays }); };
       const uploadPhoto = async (f, path) => isFirebaseConfigured && user ? await upload(f, path) : new Promise(r => { const fr = new FileReader(); fr.onload = e => r(e.target.result); fr.readAsDataURL(f); });
       const uploadVoice = async (blob, sid) => isFirebaseConfigured && user ? await uploadAudio(blob, sid) : URL.createObjectURL(blob);
@@ -1063,7 +1262,7 @@
       const archiveSemester = async () => { const arch = { id: genId(), name: `Semestr ${fmtDate(semesterDates.start)} - ${fmtDate(semesterDates.end)}`, archivedAt: new Date(), studentsCount: students.length, eventsCount: events.length, students: [...students], events: [...events], reminders: [...reminders], semesterDates: { ...semesterDates } }; setArchives([...archives, arch]); if (isFirebaseConfigured && user) await save('archives', arch.id, arch); setStudents([]); setEvents([]); setReminders([]); };
       const restoreArchive = async arch => { if (!confirm('Przywrócić?')) return; for (const s of arch.students || []) await saveStudent(s); for (const e of arch.events || []) await saveEvent(e); for (const r of arch.reminders || []) await saveReminder(r); if (arch.semesterDates) setSemesterDates(arch.semesterDates); };
       const deleteArchive = async id => { if (!confirm('Usunąć?')) return; setArchives(archives.filter(a => a.id !== id)); if (isFirebaseConfigured && user) await del('archives', id); };
-      const quickAction = action => { switch(action) { case 'event': setEditEvent(null); setShowEvent(true); break; case 'student': setEditStudent(null); setShowStudent(true); break; case 'reminder': setEditReminder(null); setShowReminder(true); break; case 'meeting': students.length ? (setMeetingStudent(students[0]), setShowMeeting(true)) : alert('Najpierw dodaj osobę'); break; }};
+      const quickAction = action => { switch(action) { case 'event': setEditEvent(null); setShowEvent(true); break; case 'student': setEditStudent(null); setShowStudent(true); break; case 'reminder': setEditReminder(null); setShowReminder(true); break; case 'task': setEditTask(null); setShowTask(true); break; case 'quicknote': students.length ? setShowQuickNote(true) : alert('Najpierw dodaj osobę'); break; case 'meeting': students.length ? (setMeetingStudent(students[0]), setShowMeeting(true)) : alert('Najpierw dodaj osobę'); break; }};
       const searchNav = (type, data) => { switch(type) { case 'event': setEditEvent(data); setShowEvent(true); break; case 'student': setEditStudent(data); setShowStudent(true); break; case 'reminder': setEditReminder(data); setShowReminder(true); break; }};
 
       const filteredStudents = useMemo(() => students.filter(s => { const q = studentSearch.toLowerCase(); return (!q || s.name.toLowerCase().includes(q) || s.topic?.toLowerCase().includes(q)) && (studentStageFilter === 'all' || s.stage === studentStageFilter); }), [students, studentSearch, studentStageFilter]);
@@ -1081,10 +1280,10 @@
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
                 <h1 style={{ margin: 0, fontSize: 17, fontWeight: 700, background: 'linear-gradient(135deg, #6366f1, #a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>📚 Dydaktyka</h1>
                 <span className={`sync-indicator ${status}`}>{status === 'online' ? '☁️' : '💾'}</span>
-                <nav style={{ display: 'flex', gap: 3 }}>{[{ id: 'today', icon: '☀️', label: 'Dziś' }, { id: 'calendar', icon: '📅', label: 'Kalendarz' }, { id: 'seminar', icon: '🎓', label: 'Seminarium' }, { id: 'reminders', icon: '⏰', label: 'Przypomnienia' }, { id: 'dashboard', icon: '📊', label: 'Dashboard' }].map(tab => <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ padding: '7px 11px', borderRadius: 6, border: 'none', background: activeTab === tab.id ? t.primary : 'transparent', color: activeTab === tab.id ? 'white' : t.textMuted, cursor: 'pointer', fontSize: 12, fontWeight: 500 }}><span>{tab.icon}</span><span className="hide-mobile" style={{ marginLeft: 4 }}>{tab.label}</span></button>)}</nav>
+                <nav style={{ display: 'flex', gap: 3 }}>{[{ id: 'today', icon: '☀️', label: 'Dziś' }, { id: 'calendar', icon: '📅', label: 'Kalendarz' }, { id: 'seminar', icon: '🎓', label: 'Seminarium' }, { id: 'tasks', icon: '✓', label: 'Zadania' }, { id: 'reminders', icon: '⏰', label: 'Przypomnienia' }, { id: 'dashboard', icon: '📊', label: 'Dashboard' }].map(tab => <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`} style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: activeTab === tab.id ? t.primary : 'transparent', color: activeTab === tab.id ? 'white' : t.textMuted, cursor: 'pointer', fontSize: 12, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 5 }}><span>{tab.icon}</span><span className="hide-mobile">{tab.label}</span></button>)}</nav>
               </div>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                <button onClick={() => setShowSearch(true)} style={{ padding: '7px 12px', borderRadius: 6, border: `1px solid ${t.border}`, background: t.bgAlt, color: t.textDim, cursor: 'pointer', fontSize: 11, display: 'flex', alignItems: 'center', gap: 6 }}>🔍 <span className="hide-mobile">Szukaj</span> <kbd style={{ background: t.border, padding: '2px 5px', borderRadius: 3, fontSize: 9 }}>⌘K</kbd></button>
+                <button onClick={() => setShowSearch(true)} style={{ padding: '8px 14px', borderRadius: 10, border: `1px solid ${t.border}`, background: t.bgAlt, color: t.textDim, cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', gap: 8, fontWeight: 500 }}>🔍 <span className="hide-mobile">Szukaj</span> <kbd style={{ background: t.border, padding: '3px 7px', borderRadius: 5, fontSize: 10, fontFamily: 'monospace' }}>Ctrl+K</kbd></button>
                 <div style={{ display: 'flex', gap: 8 }}><div style={{ textAlign: 'center' }}><div style={{ fontSize: 14, fontWeight: 700, color: t.primary }}>{stats.weekEvents}</div><div style={{ fontSize: 8, color: t.textDim }}>zajęć</div></div><div style={{ textAlign: 'center' }}><div style={{ fontSize: 14, fontWeight: 700, color: t.success }}>{stats.students}</div><div style={{ fontSize: 8, color: t.textDim }}>osób</div></div><div style={{ textAlign: 'center' }}><div style={{ fontSize: 14, fontWeight: 700, color: stats.overdue ? t.danger : t.textDim }}>{stats.overdue}</div><div style={{ fontSize: 8, color: t.textDim }}>!</div></div></div>
                 <Button onClick={() => setShowSettings(true)} variant="ghost" size="sm" style={{ padding: '5px 8px' }}>⚙️</Button>
                 <UserMenu user={user} onSignOut={signOut} />
@@ -1099,7 +1298,7 @@
               {activeTab === 'dashboard' && <DashboardView events={events} students={students} reminders={reminders} stages={stages} semesterDates={semesterDates} />}
             </main>
 
-            <footer style={{ textAlign: 'center', padding: '10px 16px', borderTop: `1px solid ${t.border}`, color: t.textDim, fontSize: 11 }}><strong style={{ color: t.textMuted }}>Jakub Kuś</strong> • Dydaktyka v4.0</footer>
+            <footer style={{ textAlign: 'center', padding: '12px 16px', borderTop: `1px solid ${t.border}`, color: t.textDim, fontSize: 12 }}><strong style={{ color: t.textMuted }}>Jakub Kuś</strong> • Dydaktyka v6.0</footer>
 
             <QuickActions onAction={quickAction} />
             <GlobalSearch isOpen={showSearch} onClose={() => setShowSearch(false)} events={events} students={students} reminders={reminders} stages={stages} onNav={searchNav} />
@@ -1113,6 +1312,9 @@
             <StagesModal isOpen={showStages} onClose={() => setShowStages(false)} stages={stages} onSave={saveStages} />
             <TimelineModal isOpen={showTimeline} onClose={() => { setShowTimeline(false); setTimelineStudent(null); }} student={timelineStudent} stages={stages} />
             <EmailModal isOpen={showEmail} onClose={() => { setShowEmail(false); setEmailStudent(null); }} student={emailStudent} templates={emailTemplates} />
+            <QuickNotePanel isOpen={showQuickNote} onClose={() => setShowQuickNote(false)} students={students} onSave={addMeeting} />
+            <TaskModal isOpen={showTask} onClose={() => { setShowTask(false); setEditTask(null); }} task={editTask} onSave={saveTask} />
+            <AutoRulesModal isOpen={showAutoRules} onClose={() => setShowAutoRules(false)} rules={autoRules} stages={stages} onSave={saveAutoRules} />
             <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} semesterDates={semesterDates} setSemesterDates={s => saveSettings(s, null, null)} theme={theme} setTheme={setTheme} inactivityDays={inactivityDays} setInactivityDays={d => saveSettings(null, d, null)} templates={templates} setTemplates={t => saveSettings(null, null, t)} onArchiveSemester={archiveSemester} onExportReport={() => exportSemesterPDF(students, events, stages, semesterDates)} archives={archives} onRestoreArchive={restoreArchive} onDeleteArchive={deleteArchive} syncStatus={status} />
           </div>
         </ThemeContext.Provider>
