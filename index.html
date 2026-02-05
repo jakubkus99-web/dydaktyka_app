@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dydaktyka v6.0</title>
+  <title>Dydaktyka v7.0</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -115,8 +115,8 @@
     const ThemeContext = createContext();
     const useTheme = () => useContext(ThemeContext);
     const themes = {
-      dark: { bg: '#1e1e2e', bgAlt: '#12121a', border: '#363652', text: '#e2e2e9', textMuted: '#9ca3af', textDim: '#6b7280', primary: '#6366f1', primaryBg: '#6366f122', success: '#22c55e', warning: '#f59e0b', danger: '#ef4444' },
-      light: { bg: '#ffffff', bgAlt: '#f8fafc', border: '#e2e8f0', text: '#1e293b', textMuted: '#64748b', textDim: '#94a3b8', primary: '#4f46e5', primaryBg: '#4f46e511', success: '#16a34a', warning: '#d97706', danger: '#dc2626' }
+      dark: { bg: '#1e1e2e', bgAlt: '#12121a', border: '#363652', text: '#e2e2e9', textMuted: '#9ca3af', textDim: '#6b7280', primary: '#6366f1', primaryBg: '#6366f122', success: '#22c55e', warning: '#f59e0b', danger: '#ef4444', gradient: 'linear-gradient(135deg, #6366f1, #8b5cf6)' },
+      light: { bg: '#ffffff', bgAlt: '#f8fafc', border: '#e2e8f0', text: '#1e293b', textMuted: '#64748b', textDim: '#94a3b8', primary: '#4f46e5', primaryBg: '#4f46e511', success: '#16a34a', warning: '#d97706', danger: '#dc2626', gradient: 'linear-gradient(135deg, #4f46e5, #7c3aed)' }
     };
 
     // ==================== DEFAULT DATA ====================
@@ -137,6 +137,23 @@
     ];
 
     const COLORS = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#ec4899'];
+
+    // ==================== PRODZIEKAN DEFAULTS ====================
+    const PRODZIEKAN_CATEGORIES = [
+      { id: 'podanie', label: 'Podanie studenckie', color: '#3b82f6', icon: '📋' },
+      { id: 'erasmus', label: 'Erasmus', color: '#22c55e', icon: '✈️' },
+      { id: 'organizacyjne', label: 'Organizacyjne', color: '#f59e0b', icon: '🏛️' },
+      { id: 'innowacje', label: 'Innowacje', color: '#8b5cf6', icon: '💡' },
+      { id: 'spotkanie', label: 'Spotkanie', color: '#ec4899', icon: '🤝' },
+      { id: 'inne', label: 'Inne', color: '#6b7280', icon: '📌' }
+    ];
+
+    const PRODZIEKAN_STATUSES = [
+      { id: 'todo', label: 'Do zrobienia', color: '#6b7280' },
+      { id: 'in_progress', label: 'W trakcie', color: '#3b82f6' },
+      { id: 'waiting', label: 'Czekam na odpowiedź', color: '#f59e0b' },
+      { id: 'done', label: 'Gotowe', color: '#22c55e' }
+    ];
 
     // ==================== EMAIL TEMPLATES ====================
     const DEFAULT_EMAIL_TEMPLATES = [
@@ -659,7 +676,7 @@
     const QuickActions = ({ onAction }) => {
       const t = themes[useTheme().theme];
       const [open, setOpen] = useState(false);
-      const actions = [{ id: 'quicknote', icon: '⚡', label: 'Szybka notatka' }, { id: 'event', icon: '📅', label: 'Zajęcia' }, { id: 'student', icon: '🎓', label: 'Osoba' }, { id: 'task', icon: '✓', label: 'Moje zadanie' }, { id: 'reminder', icon: '⏰', label: 'Przypomnienie' }, { id: 'meeting', icon: '🤝', label: 'Spotkanie' }];
+      const actions = [{ id: 'quicknote', icon: '⚡', label: 'Szybka notatka' }, { id: 'event', icon: '📅', label: 'Zajęcia' }, { id: 'student', icon: '🎓', label: 'Osoba' }, { id: 'prodziekanTask', icon: '🎯', label: 'Zadanie prodziekana' }, { id: 'reminder', icon: '⏰', label: 'Przypomnienie' }, { id: 'meeting', icon: '🤝', label: 'Spotkanie' }];
       return (
         <div className="quick-fab">
           {open && <div className="quick-fab-menu">{actions.map(a => <button key={a.id} className="quick-fab-item" style={{ background: t.bg, color: t.text, border: `1px solid ${t.border}` }} onClick={() => { onAction(a.id); setOpen(false); }}><span>{a.icon}</span>{a.label}</button>)}</div>}
@@ -736,6 +753,276 @@
       useEffect(() => { if (isOpen) { if (task) { setForm({ ...task, dueDate: task.dueDate ? new Date(task.dueDate).toISOString().slice(0, 10) : '' }); } else { const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1); setForm({ title: '', dueDate: tomorrow.toISOString().slice(0, 10), priority: 'medium', category: '', notes: '', done: false }); } } }, [task, isOpen]);
       const categories = ['Przeczytać', 'Napisać recenzję', 'Sprawdzić', 'Skontaktować się', 'Administracja', 'Inne'];
       return (<Modal isOpen={isOpen} onClose={onClose} title={task ? 'Edytuj zadanie' : 'Nowe zadanie'}><Input label="Tytuł" value={form.title} onChange={v => setForm({ ...form, title: v })} placeholder="np. Przeczytać rozdział 2 - Kowalski" /><div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}><Input label="Termin" type="date" value={form.dueDate} onChange={v => setForm({ ...form, dueDate: v })} /><Select label="Priorytet" value={form.priority} onChange={v => setForm({ ...form, priority: v })} options={[{ value: 'high', label: '🔴 Wysoki' }, { value: 'medium', label: '🟡 Średni' }, { value: 'low', label: '🟢 Niski' }]} /></div><Select label="Kategoria" value={form.category} onChange={v => setForm({ ...form, category: v })} options={[{ value: '', label: '— Wybierz —' }, ...categories.map(c => ({ value: c, label: c }))]} /><Input label="Notatki" value={form.notes} onChange={v => setForm({ ...form, notes: v })} multiline rows={2} /><div style={{ display: 'flex', gap: 10 }}><Button onClick={onClose} variant="secondary" style={{ flex: 1 }}>Anuluj</Button><Button onClick={() => { if (form.title.trim()) onSave({ ...task, ...form, dueDate: form.dueDate ? new Date(form.dueDate) : null }); }} disabled={!form.title.trim()} style={{ flex: 1 }}>Zapisz</Button></div></Modal>);
+    };
+
+    // ==================== PRODZIEKAN VIEW ====================
+    const ProdziekanView = ({ tasks, projects, onAddTask, onEditTask, onDeleteTask, onUpdateTaskStatus, onAddProject, onEditProject, onDeleteProject }) => {
+      const t = themes[useTheme().theme];
+      const [view, setView] = useState('list');
+      const [filter, setFilter] = useState({ status: 'all', category: 'all', project: 'all', priority: 'all' });
+      const [sortBy, setSortBy] = useState('dueDate');
+
+      const filteredTasks = useMemo(() => {
+        return tasks.filter(task => {
+          if (filter.status !== 'all' && filter.status !== 'active' && task.status !== filter.status) return false;
+          if (filter.status === 'active' && task.status === 'done') return false;
+          if (filter.category !== 'all' && task.category !== filter.category) return false;
+          if (filter.project !== 'all' && task.projectId !== filter.project) return false;
+          if (filter.priority !== 'all' && task.priority !== filter.priority) return false;
+          return true;
+        }).sort((a, b) => {
+          if (sortBy === 'dueDate') {
+            if (!a.dueDate && !b.dueDate) return 0;
+            if (!a.dueDate) return 1;
+            if (!b.dueDate) return -1;
+            return new Date(a.dueDate) - new Date(b.dueDate);
+          }
+          if (sortBy === 'priority') {
+            const order = { high: 0, medium: 1, low: 2 };
+            return (order[a.priority] || 2) - (order[b.priority] || 2);
+          }
+          return 0;
+        });
+      }, [tasks, filter, sortBy]);
+
+      const stats = useMemo(() => ({
+        total: tasks.length,
+        todo: tasks.filter(t => t.status === 'todo').length,
+        inProgress: tasks.filter(t => t.status === 'in_progress').length,
+        waiting: tasks.filter(t => t.status === 'waiting').length,
+        done: tasks.filter(t => t.status === 'done').length,
+        overdue: tasks.filter(t => t.status !== 'done' && t.dueDate && isPast(t.dueDate)).length,
+        today: tasks.filter(t => t.status !== 'done' && t.dueDate && isToday(t.dueDate)).length
+      }), [tasks]);
+
+      const priorityColors = { high: t.danger, medium: t.warning, low: t.success };
+      const priorityLabels = { high: 'Pilne', medium: 'Ważne', low: 'Normalne' };
+
+      const KanbanView = () => (
+        <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 16 }}>
+          {PRODZIEKAN_STATUSES.map(status => {
+            const statusTasks = filteredTasks.filter(t => t.status === status.id);
+            return (
+              <div key={status.id} style={{ minWidth: 280, maxWidth: 320, flexShrink: 0, background: t.bgAlt, borderRadius: 14, padding: 16, minHeight: 400 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, paddingBottom: 12, borderBottom: `2px solid ${status.color}` }}>
+                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: status.color }} />
+                  <span style={{ fontWeight: 600, color: t.text }}>{status.label}</span>
+                  <Badge color={status.color}>{statusTasks.length}</Badge>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {statusTasks.map(task => {
+                    const cat = PRODZIEKAN_CATEGORIES.find(c => c.id === task.category);
+                    const isOverdue = task.status !== 'done' && task.dueDate && isPast(task.dueDate);
+                    return (
+                      <Card key={task.id} className={`card-hover priority-${task.priority || 'low'}`} style={{ padding: 14, cursor: 'pointer', borderColor: isOverdue ? t.danger : t.border }} onClick={() => onEditTask(task)}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                          <span>{cat?.icon || '📌'}</span>
+                          <span style={{ fontSize: 12, color: cat?.color || t.textDim }}>{cat?.label || 'Inne'}</span>
+                        </div>
+                        <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 8, color: t.text }}>{task.title}</div>
+                        {task.dueDate && <div style={{ fontSize: 12, color: isOverdue ? t.danger : t.textDim }}>📅 {fmtDate(task.dueDate)}</div>}
+                        {task.relatedPerson && <div style={{ fontSize: 11, color: t.textDim, marginTop: 6 }}>👤 {task.relatedPerson}</div>}
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      );
+
+      const ListView = () => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {!filteredTasks.length ? (
+            <Card style={{ textAlign: 'center', padding: 48, color: t.textDim }}><div style={{ fontSize: 48, marginBottom: 16 }}>🎯</div><div style={{ fontSize: 16 }}>Brak zadań {filter.status === 'active' ? 'do zrobienia' : ''}</div></Card>
+          ) : filteredTasks.map(task => {
+            const cat = PRODZIEKAN_CATEGORIES.find(c => c.id === task.category);
+            const project = projects.find(p => p.id === task.projectId);
+            const isOverdue = task.status !== 'done' && task.dueDate && isPast(task.dueDate);
+            const isTodayTask = task.status !== 'done' && task.dueDate && isToday(task.dueDate);
+            return (
+              <Card key={task.id} className={`card-hover priority-${task.priority || 'low'}`} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 16, opacity: task.status === 'done' ? 0.6 : 1, borderColor: isOverdue ? t.danger : isTodayTask ? t.warning : t.border }}>
+                <select value={task.status} onChange={e => onUpdateTaskStatus(task.id, e.target.value)} onClick={e => e.stopPropagation()} style={{ padding: '8px 12px', borderRadius: 8, border: `1px solid ${t.border}`, background: t.bgAlt, color: t.text, fontSize: 12, cursor: 'pointer', minWidth: 140 }}>
+                  {PRODZIEKAN_STATUSES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+                </select>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                    <span style={{ fontSize: 18 }}>{cat?.icon || '📌'}</span>
+                    <span style={{ fontWeight: 600, fontSize: 15, textDecoration: task.status === 'done' ? 'line-through' : 'none', color: t.text }}>{task.title}</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 12, fontSize: 12, color: t.textDim, flexWrap: 'wrap' }}>
+                    {task.dueDate && <span style={{ color: isOverdue ? t.danger : isTodayTask ? t.warning : t.textDim }}>📅 {fmtDate(task.dueDate)}</span>}
+                    <span style={{ color: priorityColors[task.priority || 'low'] }}>● {priorityLabels[task.priority || 'low']}</span>
+                    {cat && <span style={{ color: cat.color }}>{cat.label}</span>}
+                    {project && <span>📁 {project.name}</span>}
+                    {task.relatedPerson && <span>👤 {task.relatedPerson}</span>}
+                  </div>
+                </div>
+                <Button onClick={() => onEditTask(task)} variant="ghost" size="sm">✏️</Button>
+                <Button onClick={() => { if (confirm('Usunąć zadanie?')) onDeleteTask(task.id); }} variant="ghost" size="sm">🗑️</Button>
+              </Card>
+            );
+          })}
+        </div>
+      );
+
+      return (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
+            <h2 style={{ color: t.text, margin: 0, display: 'flex', alignItems: 'center', gap: 14 }}>
+              <span style={{ fontSize: 36 }}>🎯</span>
+              <div><div style={{ fontSize: 24, fontWeight: 700 }}>Prodziekan</div><div style={{ fontSize: 14, fontWeight: 400, color: t.textMuted }}>System zarządzania zadaniami</div></div>
+            </h2>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <Button onClick={onAddProject} variant="secondary">📁 Nowy projekt</Button>
+              <Button onClick={onAddTask}>➕ Nowe zadanie</Button>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12, marginBottom: 24 }}>
+            <StatCard value={stats.todo} label="Do zrobienia" icon="📋" color={t.textMuted} />
+            <StatCard value={stats.inProgress} label="W trakcie" icon="🔄" color={t.primary} />
+            <StatCard value={stats.waiting} label="Oczekujące" icon="⏳" color={t.warning} />
+            <StatCard value={stats.overdue} label="Zaległe" icon="⚠️" color={stats.overdue > 0 ? t.danger : t.textDim} />
+            <StatCard value={stats.today} label="Na dziś" icon="📅" color={t.warning} />
+            <StatCard value={stats.done} label="Ukończone" icon="✅" color={t.success} />
+          </div>
+
+          {projects.length > 0 && (
+            <div style={{ marginBottom: 24 }}>
+              <h3 style={{ color: t.text, marginBottom: 14, fontSize: 16, fontWeight: 600 }}>📁 Projekty</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12 }}>
+                {projects.map(project => {
+                  const projectTasks = tasks.filter(t => t.projectId === project.id);
+                  const doneTasks = projectTasks.filter(t => t.status === 'done').length;
+                  const progress = projectTasks.length ? (doneTasks / projectTasks.length * 100) : 0;
+                  return (
+                    <Card key={project.id} className="card-hover" style={{ cursor: 'pointer' }} onClick={() => setFilter({ ...filter, project: filter.project === project.id ? 'all' : project.id })}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                        <div style={{ fontWeight: 600, color: t.text }}>{project.name}</div>
+                        <Badge color={project.color || t.primary}>{doneTasks}/{projectTasks.length}</Badge>
+                      </div>
+                      <div style={{ height: 6, background: t.bgAlt, borderRadius: 3, overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${progress}%`, background: project.color || t.primary, borderRadius: 3 }} />
+                      </div>
+                      <div style={{ fontSize: 11, color: t.textDim, marginTop: 8 }}>{project.description || 'Brak opisu'}</div>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <select value={filter.status} onChange={e => setFilter({ ...filter, status: e.target.value })} style={{ padding: '10px 14px', borderRadius: 10, border: `1px solid ${t.border}`, background: t.bgAlt, color: t.text, fontSize: 13 }}>
+                <option value="all">Wszystkie statusy</option>
+                <option value="active">Aktywne</option>
+                {PRODZIEKAN_STATUSES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+              </select>
+              <select value={filter.category} onChange={e => setFilter({ ...filter, category: e.target.value })} style={{ padding: '10px 14px', borderRadius: 10, border: `1px solid ${t.border}`, background: t.bgAlt, color: t.text, fontSize: 13 }}>
+                <option value="all">Wszystkie kategorie</option>
+                {PRODZIEKAN_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
+              </select>
+              <select value={filter.priority} onChange={e => setFilter({ ...filter, priority: e.target.value })} style={{ padding: '10px 14px', borderRadius: 10, border: `1px solid ${t.border}`, background: t.bgAlt, color: t.text, fontSize: 13 }}>
+                <option value="all">Wszystkie priorytety</option>
+                <option value="high">🔴 Pilne</option>
+                <option value="medium">🟡 Ważne</option>
+                <option value="low">🟢 Normalne</option>
+              </select>
+              <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ padding: '10px 14px', borderRadius: 10, border: `1px solid ${t.border}`, background: t.bgAlt, color: t.text, fontSize: 13 }}>
+                <option value="dueDate">Sortuj: Termin</option>
+                <option value="priority">Sortuj: Priorytet</option>
+              </select>
+            </div>
+            <div style={{ display: 'flex', gap: 4 }}>
+              {['list', 'kanban'].map(v => (
+                <button key={v} onClick={() => setView(v)} style={{ padding: '10px 16px', borderRadius: 10, border: `1px solid ${t.border}`, background: view === v ? t.primary : 'transparent', color: view === v ? 'white' : t.textMuted, cursor: 'pointer', fontSize: 13, fontWeight: 500 }}>
+                  {v === 'list' ? '📋 Lista' : '📊 Kanban'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {view === 'list' && <ListView />}
+          {view === 'kanban' && <KanbanView />}
+        </div>
+      );
+    };
+
+    // ==================== PRODZIEKAN TASK MODAL ====================
+    const ProdziekanTaskModal = ({ isOpen, onClose, task, projects, onSave }) => {
+      const t = themes[useTheme().theme];
+      const [form, setForm] = useState({ title: '', description: '', category: 'inne', status: 'todo', priority: 'medium', dueDate: '', softDeadline: '', relatedPerson: '', projectId: '', tags: '', notes: '' });
+      useEffect(() => {
+        if (isOpen) {
+          if (task) {
+            setForm({ ...task, dueDate: task.dueDate ? new Date(task.dueDate).toISOString().slice(0, 10) : '', softDeadline: task.softDeadline ? new Date(task.softDeadline).toISOString().slice(0, 10) : '', tags: task.tags?.join(', ') || '' });
+          } else {
+            const nextWeek = new Date(); nextWeek.setDate(nextWeek.getDate() + 7);
+            setForm({ title: '', description: '', category: 'inne', status: 'todo', priority: 'medium', dueDate: nextWeek.toISOString().slice(0, 10), softDeadline: '', relatedPerson: '', projectId: '', tags: '', notes: '' });
+          }
+        }
+      }, [task, isOpen]);
+      const handleSave = () => {
+        if (!form.title.trim()) return;
+        onSave({ ...task, ...form, dueDate: form.dueDate ? new Date(form.dueDate) : null, softDeadline: form.softDeadline ? new Date(form.softDeadline) : null, tags: form.tags ? form.tags.split(',').map(t => t.trim()).filter(Boolean) : [], createdAt: task?.createdAt || new Date() });
+      };
+      return (
+        <Modal isOpen={isOpen} onClose={onClose} title={task ? 'Edytuj zadanie' : 'Nowe zadanie prodziekana'} width="600px">
+          <Input label="Tytuł *" value={form.title} onChange={v => setForm({ ...form, title: v })} placeholder="np. Rozpatrzenie podania o urlop" />
+          <Input label="Opis" value={form.description} onChange={v => setForm({ ...form, description: v })} multiline rows={2} placeholder="Szczegóły zadania..." />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <Select label="Kategoria" value={form.category} onChange={v => setForm({ ...form, category: v })} options={PRODZIEKAN_CATEGORIES.map(c => ({ value: c.id, label: `${c.icon} ${c.label}` }))} />
+            <Select label="Status" value={form.status} onChange={v => setForm({ ...form, status: v })} options={PRODZIEKAN_STATUSES.map(s => ({ value: s.id, label: s.label }))} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <Select label="Priorytet" value={form.priority} onChange={v => setForm({ ...form, priority: v })} options={[{ value: 'high', label: '🔴 Pilne' }, { value: 'medium', label: '🟡 Ważne' }, { value: 'low', label: '🟢 Normalne' }]} />
+            <Select label="Projekt" value={form.projectId || ''} onChange={v => setForm({ ...form, projectId: v })} options={[{ value: '', label: '— Bez projektu —' }, ...projects.map(p => ({ value: p.id, label: p.name }))]} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <Input label="Termin (deadline)" type="date" value={form.dueDate} onChange={v => setForm({ ...form, dueDate: v })} />
+            <Input label="Miękki termin" type="date" value={form.softDeadline} onChange={v => setForm({ ...form, softDeadline: v })} />
+          </div>
+          <Input label="Powiązana osoba" value={form.relatedPerson} onChange={v => setForm({ ...form, relatedPerson: v })} placeholder="np. Jan Kowalski (student)" />
+          <Input label="Tagi (oddzielone przecinkami)" value={form.tags} onChange={v => setForm({ ...form, tags: v })} placeholder="np. pilne, IOS, rekrutacja" />
+          <Input label="Notatki" value={form.notes} onChange={v => setForm({ ...form, notes: v })} multiline rows={2} />
+          <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+            <Button onClick={onClose} variant="secondary" style={{ flex: 1 }}>Anuluj</Button>
+            <Button onClick={handleSave} disabled={!form.title.trim()} style={{ flex: 1 }}>💾 Zapisz</Button>
+          </div>
+        </Modal>
+      );
+    };
+
+    // ==================== PROJECT MODAL ====================
+    const ProjectModal = ({ isOpen, onClose, project, onSave, onDelete }) => {
+      const t = themes[useTheme().theme];
+      const [form, setForm] = useState({ name: '', description: '', color: '#6366f1' });
+      useEffect(() => {
+        if (isOpen) {
+          if (project) { setForm({ name: project.name, description: project.description || '', color: project.color || '#6366f1' }); }
+          else { setForm({ name: '', description: '', color: COLORS[Math.floor(Math.random() * COLORS.length)] }); }
+        }
+      }, [project, isOpen]);
+      return (
+        <Modal isOpen={isOpen} onClose={onClose} title={project ? 'Edytuj projekt' : 'Nowy projekt'}>
+          <Input label="Nazwa projektu *" value={form.name} onChange={v => setForm({ ...form, name: v })} placeholder="np. Rekrutacja Erasmus 2025/26" />
+          <Input label="Opis" value={form.description} onChange={v => setForm({ ...form, description: v })} multiline rows={2} />
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: 'block', marginBottom: 8, color: t.textMuted, fontSize: 13, fontWeight: 500 }}>Kolor</label>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {COLORS.map(c => (<div key={c} onClick={() => setForm({ ...form, color: c })} style={{ width: 32, height: 32, borderRadius: 8, background: c, cursor: 'pointer', border: form.color === c ? '3px solid white' : 'none', boxShadow: form.color === c ? `0 0 0 2px ${c}` : 'none' }} />))}
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 12 }}>
+            {project && <Button onClick={() => { if (confirm('Usunąć projekt?')) { onDelete(project.id); onClose(); } }} variant="danger" style={{ flex: 1 }}>🗑️ Usuń</Button>}
+            <Button onClick={onClose} variant="secondary" style={{ flex: 1 }}>Anuluj</Button>
+            <Button onClick={() => { if (form.name.trim()) { onSave({ ...project, ...form }); onClose(); } }} disabled={!form.name.trim()} style={{ flex: 1 }}>💾 Zapisz</Button>
+          </div>
+        </Modal>
+      );
     };
 
     // ==================== AUTO RULES MODAL ====================
@@ -902,7 +1189,7 @@
               <React.Fragment key={hour}>
                 <div style={{ padding: 6, fontSize: 9, color: t.textDim, borderTop: `1px solid ${t.border}`, height: 44, textAlign: 'right', paddingRight: 8 }}>{hour}:00</div>
                 {weekDates.map((date, di) => {
-                  const dayEvents = filtered.filter(e => isSameDay(e.start, date) && new Date(e.start).getHours() === hour);
+                  const dayEvents = filtered.filter(e => isSameDay(e.start, date) && new Date(e.start).getHours() === hour).sort((a, b) => new Date(a.start) - new Date(b.start));
                   return <div key={di} style={{ borderTop: `1px solid ${t.border}`, borderLeft: `1px solid ${t.border}`, height: 44, padding: 2 }}>
                     {dayEvents.map(event => { const subj = getSubjectById(event.subjectId); const col = subj?.color || t.primary; return <div key={event.id} onClick={() => onEventClick(event)} style={{ background: col + '33', borderLeft: `2px solid ${col}`, padding: '2px 4px', borderRadius: 2, fontSize: 11, cursor: 'pointer', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}><span style={{ fontWeight: 600, color: col }}>{fmtTime(event.start)}</span> {event.title}</div>; })}
                   </div>;
@@ -924,7 +1211,7 @@
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', borderBottom: `1px solid ${t.border}` }}>{dayNames.map(d => <div key={d} style={{ padding: 8, textAlign: 'center', background: t.bgAlt, fontSize: 10, color: t.textDim, fontWeight: 600 }}>{d}</div>)}</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)' }}>
             {monthDates.map(({ date, curr }, i) => {
-              const dayEvents = filtered.filter(e => isSameDay(e.start, date));
+              const dayEvents = filtered.filter(e => isSameDay(e.start, date)).sort((a, b) => new Date(a.start) - new Date(b.start));
               return <div key={i} style={{ minHeight: 70, padding: 4, borderRight: (i + 1) % 7 ? `1px solid ${t.border}` : 'none', borderBottom: `1px solid ${t.border}`, background: isToday(date) ? t.primaryBg : 'transparent', opacity: curr ? 1 : 0.4 }}>
                 <div style={{ fontSize: 12, fontWeight: isToday(date) ? 700 : 400, color: isToday(date) ? t.primary : t.textMuted, marginBottom: 2 }}>{date.getDate()}</div>
                 {dayEvents.slice(0, 3).map(e => { const subj = getSubjectById(e.subjectId); const col = subj?.color || t.primary; return <div key={e.id} onClick={() => onEventClick(e)} style={{ background: col + '33', borderLeft: `2px solid ${col}`, padding: '2px 4px', borderRadius: 2, fontSize: 11, cursor: 'pointer', marginBottom: 2, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}><span style={{ fontWeight: 600, color: col, marginRight: 3 }}>{fmtTime(e.start)}</span>{e.title}</div>; })}
@@ -945,7 +1232,7 @@
           <div style={{ padding: 10, borderBottom: `1px solid ${t.border}`, display: 'flex', gap: 10, flexWrap: 'wrap', background: t.bgAlt }}>{subjects.map(s => <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 4 }}><div style={{ width: 8, height: 8, borderRadius: 2, background: s.color }} /><span style={{ fontSize: 10, color: t.textMuted }}>{s.name}</span></div>)}</div>
           <div style={{ padding: 10 }}>
             {weeks.map((week, i) => {
-              const weekEvents = filtered.filter(e => { const d = new Date(e.start); return d >= week.start && d <= week.end; });
+              const weekEvents = filtered.filter(e => { const d = new Date(e.start); return d >= week.start && d <= week.end; }).sort((a, b) => new Date(a.start) - new Date(b.start));
               const isCurrent = new Date() >= week.start && new Date() <= week.end;
               return <div key={i} style={{ display: 'flex', marginBottom: 2, background: isCurrent ? t.primaryBg : 'transparent', borderRadius: 4 }}>
                 <div style={{ width: 100, padding: '4px 8px', fontSize: 10, color: isCurrent ? t.primary : t.textDim, fontWeight: isCurrent ? 600 : 400, background: t.bgAlt, borderRadius: '4px 0 0 4px' }}>T{week.num}: {fmtDate(week.start).slice(0, 5)}</div>
@@ -1214,12 +1501,20 @@
       const [studentSearch, setStudentSearch] = useState('');
       const [studentStageFilter, setStudentStageFilter] = useState('all');
 
+      // Prodziekan states
+      const [prodziekanTasks, setProdziekanTasks] = useState([]);
+      const [projects, setProjects] = useState([]);
+      const [showProdziekanTask, setShowProdziekanTask] = useState(false);
+      const [editProdziekanTask, setEditProdziekanTask] = useState(null);
+      const [showProject, setShowProject] = useState(false);
+      const [editProject, setEditProject] = useState(null);
+
       const { status, upload, uploadAudio, delFile, save, del, subscribe } = useFirebase(user?.uid);
 
       useEffect(() => { document.body.className = theme; }, [theme]);
       useEffect(() => { const h = e => { if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); setShowSearch(true); } if (e.key === 'Escape') setShowSearch(false); }; window.addEventListener('keydown', h); return () => window.removeEventListener('keydown', h); }, []);
 
-      useEffect(() => { if (!user?.uid || !isFirebaseConfigured) return; const unsubs = [subscribe('subjects', d => d.length && setSubjects(d)), subscribe('events', d => d.length && setEvents(d.map(e => ({ ...e, photos: e.photos || [] })))), subscribe('students', d => d.length && setStudents(d)), subscribe('reminders', d => d.length && setReminders(d)), subscribe('tasks', d => setTasks(d)), subscribe('archives', d => setArchives(d)), subscribe('settings', d => { const s = d.find(x => x.id === 'main'); if (s) { if (s.stages) setStages(s.stages); if (s.templates) setTemplates(s.templates); if (s.autoRules) setAutoRules(s.autoRules); if (s.semesterDates) setSemesterDates(s.semesterDates); if (s.inactivityDays) setInactivityDays(s.inactivityDays); }})]; return () => unsubs.forEach(u => u()); }, [user?.uid, isFirebaseConfigured]);
+      useEffect(() => { if (!user?.uid || !isFirebaseConfigured) return; const unsubs = [subscribe('subjects', d => d.length && setSubjects(d)), subscribe('events', d => d.length && setEvents(d.map(e => ({ ...e, photos: e.photos || [] })))), subscribe('students', d => d.length && setStudents(d)), subscribe('reminders', d => d.length && setReminders(d)), subscribe('tasks', d => setTasks(d)), subscribe('prodziekanTasks', d => setProdziekanTasks(d)), subscribe('projects', d => setProjects(d)), subscribe('archives', d => setArchives(d)), subscribe('settings', d => { const s = d.find(x => x.id === 'main'); if (s) { if (s.stages) setStages(s.stages); if (s.templates) setTemplates(s.templates); if (s.autoRules) setAutoRules(s.autoRules); if (s.semesterDates) setSemesterDates(s.semesterDates); if (s.inactivityDays) setInactivityDays(s.inactivityDays); }})]; return () => unsubs.forEach(u => u()); }, [user?.uid, isFirebaseConfigured]);
 
       // Auto-generate reminders
       useEffect(() => {
@@ -1250,6 +1545,13 @@
       const delTask = async id => { setTasks(tasks.filter(t => t.id !== id)); if (isFirebaseConfigured && user) await del('tasks', id); };
       const toggleTask = async id => { const t = tasks.find(x => x.id === id); if (!t) return; const data = { ...t, done: !t.done }; setTasks(tasks.map(x => x.id === id ? data : x)); if (isFirebaseConfigured && user) await save('tasks', id, data); };
       
+      // Prodziekan CRUD
+      const saveProdziekanTask = async task => { const id = task.id || genId(), data = { ...task, id }; task.id ? setProdziekanTasks(prodziekanTasks.map(t => t.id === task.id ? data : t)) : setProdziekanTasks([...prodziekanTasks, data]); setShowProdziekanTask(false); setEditProdziekanTask(null); if (isFirebaseConfigured && user) await save('prodziekanTasks', id, data); };
+      const delProdziekanTask = async id => { setProdziekanTasks(prodziekanTasks.filter(t => t.id !== id)); if (isFirebaseConfigured && user) await del('prodziekanTasks', id); };
+      const updateProdziekanTaskStatus = async (id, status) => { const t = prodziekanTasks.find(x => x.id === id); if (!t) return; const data = { ...t, status }; setProdziekanTasks(prodziekanTasks.map(x => x.id === id ? data : x)); if (isFirebaseConfigured && user) await save('prodziekanTasks', id, data); };
+      const saveProject = async proj => { const id = proj.id || genId(), data = { ...proj, id }; proj.id ? setProjects(projects.map(p => p.id === proj.id ? data : p)) : setProjects([...projects, data]); setShowProject(false); setEditProject(null); if (isFirebaseConfigured && user) await save('projects', id, data); };
+      const delProject = async id => { setProjects(projects.filter(p => p.id !== id)); if (isFirebaseConfigured && user) await del('projects', id); };
+      
       const saveAutoRules = async newRules => { setAutoRules(newRules); if (isFirebaseConfigured && user) await save('settings', 'main', { stages, templates, autoRules: newRules, semesterDates, inactivityDays }); };
       
       const saveStages = async newStages => { setStages(newStages); if (isFirebaseConfigured && user) await save('settings', 'main', { stages: newStages, templates, autoRules, semesterDates, inactivityDays }); };
@@ -1262,8 +1564,8 @@
       const archiveSemester = async () => { const arch = { id: genId(), name: `Semestr ${fmtDate(semesterDates.start)} - ${fmtDate(semesterDates.end)}`, archivedAt: new Date(), studentsCount: students.length, eventsCount: events.length, students: [...students], events: [...events], reminders: [...reminders], semesterDates: { ...semesterDates } }; setArchives([...archives, arch]); if (isFirebaseConfigured && user) await save('archives', arch.id, arch); setStudents([]); setEvents([]); setReminders([]); };
       const restoreArchive = async arch => { if (!confirm('Przywrócić?')) return; for (const s of arch.students || []) await saveStudent(s); for (const e of arch.events || []) await saveEvent(e); for (const r of arch.reminders || []) await saveReminder(r); if (arch.semesterDates) setSemesterDates(arch.semesterDates); };
       const deleteArchive = async id => { if (!confirm('Usunąć?')) return; setArchives(archives.filter(a => a.id !== id)); if (isFirebaseConfigured && user) await del('archives', id); };
-      const quickAction = action => { switch(action) { case 'event': setEditEvent(null); setShowEvent(true); break; case 'student': setEditStudent(null); setShowStudent(true); break; case 'reminder': setEditReminder(null); setShowReminder(true); break; case 'task': setEditTask(null); setShowTask(true); break; case 'quicknote': students.length ? setShowQuickNote(true) : alert('Najpierw dodaj osobę'); break; case 'meeting': students.length ? (setMeetingStudent(students[0]), setShowMeeting(true)) : alert('Najpierw dodaj osobę'); break; }};
-      const searchNav = (type, data) => { switch(type) { case 'event': setEditEvent(data); setShowEvent(true); break; case 'student': setEditStudent(data); setShowStudent(true); break; case 'reminder': setEditReminder(data); setShowReminder(true); break; }};
+      const quickAction = action => { switch(action) { case 'event': setEditEvent(null); setShowEvent(true); break; case 'student': setEditStudent(null); setShowStudent(true); break; case 'reminder': setEditReminder(null); setShowReminder(true); break; case 'task': setEditTask(null); setShowTask(true); break; case 'prodziekanTask': setEditProdziekanTask(null); setShowProdziekanTask(true); break; case 'quicknote': students.length ? setShowQuickNote(true) : alert('Najpierw dodaj osobę'); break; case 'meeting': students.length ? (setMeetingStudent(students[0]), setShowMeeting(true)) : alert('Najpierw dodaj osobę'); break; }};
+      const searchNav = (type, data) => { switch(type) { case 'event': setEditEvent(data); setShowEvent(true); break; case 'student': setEditStudent(data); setShowStudent(true); break; case 'reminder': setEditReminder(data); setShowReminder(true); break; case 'prodziekanTask': setEditProdziekanTask(data); setShowProdziekanTask(true); break; }};
 
       const filteredStudents = useMemo(() => students.filter(s => { const q = studentSearch.toLowerCase(); return (!q || s.name.toLowerCase().includes(q) || s.topic?.toLowerCase().includes(q)) && (studentStageFilter === 'all' || s.stage === studentStageFilter); }), [students, studentSearch, studentStageFilter]);
       const stats = useMemo(() => { const wd = getWeekDates(new Date()); return { weekEvents: events.filter(e => new Date(e.start) >= wd[0] && new Date(e.start) <= wd[6]).length, students: students.length, overdue: reminders.filter(r => !r.done && isPast(r.date)).length }; }, [events, reminders, students]);
@@ -1280,7 +1582,7 @@
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
                 <h1 style={{ margin: 0, fontSize: 17, fontWeight: 700, background: 'linear-gradient(135deg, #6366f1, #a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>📚 Dydaktyka</h1>
                 <span className={`sync-indicator ${status}`}>{status === 'online' ? '☁️' : '💾'}</span>
-                <nav style={{ display: 'flex', gap: 3 }}>{[{ id: 'today', icon: '☀️', label: 'Dziś' }, { id: 'calendar', icon: '📅', label: 'Kalendarz' }, { id: 'seminar', icon: '🎓', label: 'Seminarium' }, { id: 'tasks', icon: '✓', label: 'Zadania' }, { id: 'reminders', icon: '⏰', label: 'Przypomnienia' }, { id: 'dashboard', icon: '📊', label: 'Dashboard' }].map(tab => <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`} style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: activeTab === tab.id ? t.primary : 'transparent', color: activeTab === tab.id ? 'white' : t.textMuted, cursor: 'pointer', fontSize: 12, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 5 }}><span>{tab.icon}</span><span className="hide-mobile">{tab.label}</span></button>)}</nav>
+                <nav style={{ display: 'flex', gap: 4 }}>{[{ id: 'today', icon: '☀️', label: 'Dziś' }, { id: 'calendar', icon: '📅', label: 'Kalendarz' }, { id: 'seminar', icon: '🎓', label: 'Seminarium' }, { id: 'prodziekan', icon: '🎯', label: 'Prodziekan' }, { id: 'reminders', icon: '⏰', label: 'Przypomnienia' }, { id: 'dashboard', icon: '📊', label: 'Dashboard' }].map(tab => <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`} style={{ padding: '10px 14px', borderRadius: 10, border: 'none', background: activeTab === tab.id ? t.primary : 'transparent', color: activeTab === tab.id ? 'white' : t.textMuted, cursor: 'pointer', fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 7 }}><span style={{ fontSize: 16 }}>{tab.icon}</span><span className="hide-mobile">{tab.label}</span></button>)}</nav>
               </div>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                 <button onClick={() => setShowSearch(true)} style={{ padding: '8px 14px', borderRadius: 10, border: `1px solid ${t.border}`, background: t.bgAlt, color: t.textDim, cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', gap: 8, fontWeight: 500 }}>🔍 <span className="hide-mobile">Szukaj</span> <kbd style={{ background: t.border, padding: '3px 7px', borderRadius: 5, fontSize: 10, fontFamily: 'monospace' }}>Ctrl+K</kbd></button>
@@ -1294,11 +1596,12 @@
               {activeTab === 'today' && <TodayView events={events} reminders={reminders} students={students} stages={stages} inactivityDays={inactivityDays} onEventClick={e => { setEditEvent(e); setShowEvent(true); }} onReminderClick={r => { setEditReminder(r); setShowReminder(true); }} onStudentClick={s => { setEditStudent(s); setShowStudent(true); }} />}
               {activeTab === 'calendar' && <CalendarView view={calendarView} setView={setCalendarView} currentDate={currentDate} setCurrentDate={setCurrentDate} events={events} subjects={subjects} semesterDates={semesterDates} onEventClick={e => { setEditEvent(e); setShowEvent(true); }} onImportClick={() => setShowImport(true)} onSubjectClick={() => setShowSubject(true)} onAddEvent={() => { setEditEvent(null); setShowEvent(true); }} getSubjectById={getSubjectById} subjectFilter={subjectFilter} setSubjectFilter={setSubjectFilter} />}
               {activeTab === 'seminar' && <SeminarView students={filteredStudents} allStudents={students} search={studentSearch} setSearch={setStudentSearch} stageFilter={studentStageFilter} setStageFilter={setStudentStageFilter} stages={stages} onAddStudent={() => { setEditStudent(null); setShowStudent(true); }} onEditStudent={s => { setEditStudent(s); setShowStudent(true); }} onDeleteStudent={delStudent} onAddMeeting={s => { setMeetingStudent(s); setShowMeeting(true); }} onDeleteMeeting={delMeeting} onViewTimeline={s => { setTimelineStudent(s); setShowTimeline(true); }} onExportPDF={s => exportStudentPDF(s, stages)} onEditStages={() => setShowStages(true)} onExportCSV={() => exportCSV(students, stages)} onImportCSV={() => setShowImport(true)} onSendEmail={s => { setEmailStudent(s); setShowEmail(true); }} inactivityDays={inactivityDays} />}
-              {activeTab === 'reminders' && <RemindersView reminders={reminders} events={events} students={students} onAdd={() => { setEditReminder(null); setShowReminder(true); }} onEdit={r => { setEditReminder(r); setShowReminder(true); }} onDelete={delReminder} onToggle={toggleReminder} />}
+              {activeTab === 'prodziekan' && <ProdziekanView tasks={prodziekanTasks} projects={projects} onAddTask={() => { setEditProdziekanTask(null); setShowProdziekanTask(true); }} onEditTask={t => { setEditProdziekanTask(t); setShowProdziekanTask(true); }} onDeleteTask={delProdziekanTask} onUpdateTaskStatus={updateProdziekanTaskStatus} onAddProject={() => { setEditProject(null); setShowProject(true); }} onEditProject={p => { setEditProject(p); setShowProject(true); }} onDeleteProject={delProject} />}
+              {activeTab === 'reminders' && <RemindersView reminders={reminders} events={events} students={students} onAdd={() => { setEditReminder(null); setShowReminder(true); }} onEdit={r => { setEditReminder(r); setShowReminder(true); }} onDelete={delReminder} onToggle={toggleReminder} onOpenAutoRules={() => setShowAutoRules(true)} />}
               {activeTab === 'dashboard' && <DashboardView events={events} students={students} reminders={reminders} stages={stages} semesterDates={semesterDates} />}
             </main>
 
-            <footer style={{ textAlign: 'center', padding: '12px 16px', borderTop: `1px solid ${t.border}`, color: t.textDim, fontSize: 12 }}><strong style={{ color: t.textMuted }}>Jakub Kuś</strong> • Dydaktyka v6.0</footer>
+            <footer style={{ textAlign: 'center', padding: '14px 18px', borderTop: `1px solid ${t.border}`, color: t.textDim, fontSize: 13 }}><strong style={{ color: t.textMuted }}>Jakub Kuś</strong> • Dydaktyka v7.0</footer>
 
             <QuickActions onAction={quickAction} />
             <GlobalSearch isOpen={showSearch} onClose={() => setShowSearch(false)} events={events} students={students} reminders={reminders} stages={stages} onNav={searchNav} />
@@ -1315,6 +1618,8 @@
             <QuickNotePanel isOpen={showQuickNote} onClose={() => setShowQuickNote(false)} students={students} onSave={addMeeting} />
             <TaskModal isOpen={showTask} onClose={() => { setShowTask(false); setEditTask(null); }} task={editTask} onSave={saveTask} />
             <AutoRulesModal isOpen={showAutoRules} onClose={() => setShowAutoRules(false)} rules={autoRules} stages={stages} onSave={saveAutoRules} />
+            <ProdziekanTaskModal isOpen={showProdziekanTask} onClose={() => { setShowProdziekanTask(false); setEditProdziekanTask(null); }} task={editProdziekanTask} projects={projects} onSave={saveProdziekanTask} />
+            <ProjectModal isOpen={showProject} onClose={() => { setShowProject(false); setEditProject(null); }} project={editProject} onSave={saveProject} onDelete={delProject} />
             <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} semesterDates={semesterDates} setSemesterDates={s => saveSettings(s, null, null)} theme={theme} setTheme={setTheme} inactivityDays={inactivityDays} setInactivityDays={d => saveSettings(null, d, null)} templates={templates} setTemplates={t => saveSettings(null, null, t)} onArchiveSemester={archiveSemester} onExportReport={() => exportSemesterPDF(students, events, stages, semesterDates)} archives={archives} onRestoreArchive={restoreArchive} onDeleteArchive={deleteArchive} syncStatus={status} />
           </div>
         </ThemeContext.Provider>
