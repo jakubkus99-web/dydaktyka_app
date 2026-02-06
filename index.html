@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dydaktyka v7.0</title>
+  <title>Dydaktyka v8.0</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -14,18 +14,45 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     :root { --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1); }
-    body { font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; min-height: 100vh; transition: background 0.4s var(--ease-out-expo), color 0.3s; }
-    body.dark { background: linear-gradient(145deg, #0a0a0f 0%, #12121a 50%, #0d0d14 100%); color: #e8e8ed; }
-    body.light { background: linear-gradient(145deg, #f8f9fc 0%, #eef1f5 50%, #f5f7fa 100%); color: #1a1d29; }
+    body { font-family: 'DM Sans', -apple-system, sans-serif; min-height: 100vh; transition: background 0.4s var(--ease-out-expo), color 0.3s; }
+    body { overflow-x: hidden; }
+    body.dark { background: #08080d; color: #e2e2e9; }
+    body.dark::before { content:''; position:fixed; inset:0; z-index:-2;
+      background: radial-gradient(ellipse 80% 60% at 20% 10%, rgba(99,102,241,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(139,92,246,0.06) 0%, transparent 50%),
+        radial-gradient(ellipse 40% 40% at 50% 50%, rgba(20,184,166,0.04) 0%, transparent 50%);
+      animation: bgShift 30s ease-in-out infinite alternate; }
+    body.light { background: #f4f5f9; color: #1a1d29; }
+    body.light::before { content:''; position:fixed; inset:0; z-index:-2;
+      background: radial-gradient(ellipse 80% 60% at 30% 0%, rgba(79,70,229,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 60% at 70% 90%, rgba(236,72,153,0.04) 0%, transparent 50%);
+      animation: bgShift 30s ease-in-out infinite alternate; }
+    body.oled { background: #000; color: #e8e8ed; }
+    body.oled::before { content:''; position:fixed; inset:0; z-index:-2;
+      background: radial-gradient(ellipse 50% 40% at 30% 20%, rgba(99,102,241,0.05) 0%, transparent 50%),
+        radial-gradient(ellipse 40% 30% at 70% 70%, rgba(139,92,246,0.03) 0%, transparent 40%); }
+    body::after { content:''; position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:0.015;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-repeat: repeat; }
+    @keyframes bgShift { 0% { opacity:1; transform:scale(1); } 50% { opacity:0.8; transform:scale(1.05); } 100% { opacity:1; transform:scale(1); } }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    body.dark ::-webkit-scrollbar-thumb { background: #2a2a3e; border-radius: 3px; }
+    body.dark ::-webkit-scrollbar-thumb, body.oled ::-webkit-scrollbar-thumb { background: #2a2a3e; border-radius: 3px; }
     body.light ::-webkit-scrollbar-thumb { background: #c5cad3; border-radius: 3px; }
-    ::selection { background: #6366f155; }
+    ::selection { background: #6366f133; }
+    .glass { backdrop-filter: blur(20px) saturate(1.4); -webkit-backdrop-filter: blur(20px) saturate(1.4); }
+    body.dark .glass { background: rgba(20,20,35,0.65); border: 1px solid rgba(255,255,255,0.06); }
+    body.light .glass { background: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.06); }
+    body.oled .glass { background: rgba(5,5,10,0.85); border: 1px solid rgba(255,255,255,0.04); }
+    .glass-strong { backdrop-filter: blur(32px) saturate(1.6); -webkit-backdrop-filter: blur(32px) saturate(1.6); }
+    body.dark .glass-strong { background: rgba(20,20,35,0.85); border: 1px solid rgba(255,255,255,0.08); }
+    body.light .glass-strong { background: rgba(255,255,255,0.85); border: 1px solid rgba(0,0,0,0.08); }
+    body.oled .glass-strong { background: rgba(5,5,10,0.92); border: 1px solid rgba(255,255,255,0.05); }
     .sync-indicator { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 500; transition: all 0.3s var(--ease-out-expo); }
     .sync-indicator.online { background: linear-gradient(135deg, #22c55e15, #22c55e08); color: #22c55e; border: 1px solid #22c55e30; }
     .sync-indicator.offline { background: linear-gradient(135deg, #ef444415, #ef444408); color: #ef4444; border: 1px solid #ef444430; }
@@ -41,6 +68,34 @@
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    @keyframes slideDown { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    @keyframes tabSwitch { from { opacity:0; transform:translateY(8px) scale(0.98); } to { opacity:1; transform:translateY(0) scale(1); } }
+    @keyframes confetti { 0% { transform:translateY(0) rotate(0deg); opacity:1; } 100% { transform:translateY(-200px) rotate(720deg); opacity:0; } }
+    @keyframes progressFill { from { width: 0; } }
+    @keyframes float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-4px); } }
+    .tab-content { animation: tabSwitch 0.35s var(--ease-out-expo); }
+    .animate-in { animation: slideUp 0.4s var(--ease-out-expo) backwards; }
+    .animate-in-delay-1 { animation-delay: 0.05s; }
+    .animate-in-delay-2 { animation-delay: 0.1s; }
+    .animate-in-delay-3 { animation-delay: 0.15s; }
+    .card-hover:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.12); }
+    .kanban-card { cursor: grab; transition: all 0.2s var(--ease-out-expo); }
+    .kanban-card:active { cursor: grabbing; transform: scale(1.02) rotate(1deg); box-shadow: 0 16px 48px rgba(0,0,0,0.2); z-index:10; }
+    .kanban-column.drag-over { outline: 2px dashed rgba(99,102,241,0.4); outline-offset: -2px; }
+    .progress-bar { height:6px; border-radius:3px; overflow:hidden; }
+    .progress-bar-fill { height:100%; border-radius:3px; transition: width 0.6s var(--ease-out-expo); animation: progressFill 0.8s var(--ease-out-expo); }
+    .profile-card { position:relative; overflow:hidden; border-radius:16px; transition: all 0.3s var(--ease-out-expo); }
+    .profile-card:hover { transform: translateY(-3px); }
+    .profile-card::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; background: var(--accent-color, linear-gradient(90deg,#6366f1,#8b5cf6)); }
+    .health-dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+    .tag { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+    .tag:hover { transform: scale(1.05); }
+    .ai-panel { border-radius:16px; overflow:hidden; position:relative; }
+    .ai-panel::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,#6366f1,#8b5cf6,#ec4899,#6366f1); background-size:200% 100%; animation:shimmer 3s linear infinite; }
+    .confetti-piece { position:fixed; width:8px; height:8px; border-radius:2px; pointer-events:none; z-index:9999; animation:confetti 1.2s var(--ease-out-expo) forwards; }
+    .chart-container { position:relative; width:100%; }
+    .chart-container canvas { max-height: 220px; }
     .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at 50% 0%, #1a1a2e 0%, #0a0a0f 70%); }
     .login-card { background: linear-gradient(145deg, #1e1e2e, #16161f); border-radius: 24px; padding: 56px 48px; text-align: center; max-width: 420px; border: 1px solid #2a2a3e; box-shadow: 0 32px 80px rgba(0,0,0,0.5); animation: scaleIn 0.4s var(--ease-out-expo); }
     .google-btn { display: inline-flex; align-items: center; gap: 14px; padding: 16px 32px; border-radius: 12px; border: none; background: white; color: #333; font-size: 15px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.15); transition: all 0.2s var(--ease-out-expo); }
@@ -116,7 +171,8 @@
     const useTheme = () => useContext(ThemeContext);
     const themes = {
       dark: { bg: '#1e1e2e', bgAlt: '#12121a', border: '#363652', text: '#e2e2e9', textMuted: '#9ca3af', textDim: '#6b7280', primary: '#6366f1', primaryBg: '#6366f122', success: '#22c55e', warning: '#f59e0b', danger: '#ef4444', gradient: 'linear-gradient(135deg, #6366f1, #8b5cf6)' },
-      light: { bg: '#ffffff', bgAlt: '#f8fafc', border: '#e2e8f0', text: '#1e293b', textMuted: '#64748b', textDim: '#94a3b8', primary: '#4f46e5', primaryBg: '#4f46e511', success: '#16a34a', warning: '#d97706', danger: '#dc2626', gradient: 'linear-gradient(135deg, #4f46e5, #7c3aed)' }
+      light: { bg: '#ffffff', bgAlt: '#f8fafc', border: '#e2e8f0', text: '#1e293b', textMuted: '#64748b', textDim: '#94a3b8', primary: '#4f46e5', primaryBg: '#4f46e511', success: '#16a34a', warning: '#d97706', danger: '#dc2626', gradient: 'linear-gradient(135deg, #4f46e5, #7c3aed)' },
+      oled: { bg: '#000000', bgAlt: '#0a0a0f', border: '#1a1a25', text: '#e8e8ed', textMuted: '#888', textDim: '#555', primary: '#a5b4fc', primaryBg: '#a5b4fc10', success: '#4ade80', warning: '#fcd34d', danger: '#fb7185', gradient: 'linear-gradient(135deg, #a5b4fc, #c4b5fd)' }
     };
 
     // ==================== DEFAULT DATA ====================
@@ -135,6 +191,38 @@
       { id: 'tpl2', name: 'Przegląd rozdziału', items: ['Przeczytano rozdział', 'Omówiono strukturę', 'Wskazano poprawki'] },
       { id: 'tpl3', name: 'Przed obroną', items: ['Omówiono prezentację', 'Przećwiczono odpowiedzi', 'Sprawdzono formalności'] }
     ];
+
+    const NOTE_TAGS = [
+      { id: 'pilne', label: '#pilne', color: '#ef4444' },
+      { id: 'poprawki', label: '#poprawki', color: '#f59e0b' },
+      { id: 'pochwala', label: '#pochwała', color: '#22c55e' },
+      { id: 'pytanie', label: '#pytanie', color: '#3b82f6' },
+      { id: 'deadline', label: '#deadline', color: '#ec4899' },
+      { id: 'do_sprawdzenia', label: '#do_sprawdzenia', color: '#8b5cf6' }
+    ];
+    const extractTags = (text) => { if (!text) return []; return NOTE_TAGS.filter(tag => text.toLowerCase().includes(tag.label.toLowerCase())); };
+    const getStudentHealth = (student, inactivityDays) => {
+      const lastMeeting = student.meetings?.length ? student.meetings.sort((a,b) => new Date(b.date)-new Date(a.date))[0] : null;
+      const days = lastMeeting ? daysSince(lastMeeting.date) : 999;
+      let score = 100;
+      if (days > inactivityDays * 2) score -= 50;
+      else if (days > inactivityDays) score -= 25;
+      else if (days > inactivityDays * 0.5) score -= 10;
+      if ((student.meetings?.length || 0) < 2) score -= 15;
+      return Math.max(0, Math.min(100, score));
+    };
+    const getHealthColor = (score) => score >= 70 ? '#22c55e' : score >= 40 ? '#f59e0b' : '#ef4444';
+    const triggerConfetti = () => {
+      const colors = ['#6366f1','#8b5cf6','#ec4899','#22c55e','#f59e0b','#ef4444','#3b82f6'];
+      for (let i = 0; i < 30; i++) {
+        const el = document.createElement('div'); el.className = 'confetti-piece';
+        el.style.left = Math.random()*100+'vw'; el.style.top = '50vh';
+        el.style.background = colors[Math.floor(Math.random()*colors.length)];
+        el.style.animationDelay = Math.random()*0.5+'s';
+        el.style.animationDuration = 1+Math.random()*0.5+'s';
+        document.body.appendChild(el); setTimeout(() => el.remove(), 2000);
+      }
+    };
 
     const COLORS = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#ec4899'];
 
@@ -533,9 +621,9 @@
       );
     };
 
-    const Card = ({ children, style={}, onClick }) => {
+    const Card = ({ children, style={}, onClick, className='' }) => {
       const t = themes[useTheme().theme];
-      return <div onClick={onClick} style={{ background:t.bg, borderRadius:10, border:`1px solid ${t.border}`, padding:16, cursor:onClick?'pointer':'default', ...style }}>{children}</div>;
+      return <div onClick={onClick} className={`glass ${className}`} style={{ borderRadius:14, padding:18, cursor:onClick?'pointer':'default', ...style }}>{children}</div>;
     };
 
     const StatCard = ({ value, label, color, icon }) => {
@@ -609,7 +697,7 @@
 
     const Timeline = ({ student, stages }) => {
       const t = themes[useTheme().theme];
-      const events = [...(student.stageHistory || []).map(h => ({ type: 'stage', date: h.date, stage: stages.find(s => s.id === h.stageId), from: stages.find(s => s.id === h.fromStageId) })), ...(student.meetings || []).map(m => ({ type: 'meeting', date: m.date, notes: m.notes }))].sort((a, b) => new Date(b.date) - new Date(a.date));
+      const events = [...(student.stageHistory || []).map(h => ({ type: 'stage', date: h.date, stage: stages.find(s => s.id === h.stageId), from: stages.find(s => s.id === h.fromStageId) })), ...(student.meetings || []).map(m => ({ type: 'meeting', date: m.date, notes: m.notes, tags: extractTags(m.notes) }))].sort((a, b) => new Date(b.date) - new Date(a.date));
       if (!events.length) return <div style={{ color: t.textDim, textAlign: 'center', padding: 20 }}>Brak historii</div>;
       return (
         <div className="timeline">
@@ -622,7 +710,7 @@
                   {e.from && <span style={{ color: t.textDim }}>→</span>}
                   <Badge color={e.stage?.color}>{e.stage?.label}</Badge>
                 </div>
-              ) : <div style={{ fontSize: 13, color: t.text }}>{e.notes?.slice(0, 80)}{e.notes?.length > 80 ? '...' : ''}</div>}
+              ) : <div><div style={{ fontSize: 13, color: t.text }}>{e.notes?.slice(0, 80)}{e.notes?.length > 80 ? '...' : ''}</div>{e.tags?.length > 0 && <div style={{ display:'flex', gap:4, marginTop:4 }}>{e.tags.map(tag => <span key={tag.id} className="tag" style={{ background:tag.color+'18', color:tag.color }}>{tag.label}</span>)}</div>}</div>}
             </div>
           ))}
         </div>
@@ -700,6 +788,7 @@
               <button onClick={onClose} style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer', fontSize: 18 }}>×</button>
             </div>
             <Select label="" value={studentId} onChange={setStudentId} options={students.map(s => ({ value: s.id, label: s.name }))} />
+            <TagPicker onInsertTag={tag => setNotes(notes + ' ' + tag)} />
             <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notatka ze spotkania..." style={{ width: '100%', padding: 14, borderRadius: 12, border: `1px solid ${t.border}`, background: t.bgAlt, color: t.text, fontSize: 14, fontFamily: 'inherit', resize: 'none', height: 100, marginBottom: 12 }} autoFocus />
             <div style={{ display: 'flex', gap: 8 }}><Button onClick={onClose} variant="secondary" style={{ flex: 1 }}>Anuluj</Button><Button onClick={handleSave} disabled={!notes.trim()} style={{ flex: 1 }}>💾 Zapisz</Button></div>
           </div>
@@ -798,12 +887,19 @@
       const priorityColors = { high: t.danger, medium: t.warning, low: t.success };
       const priorityLabels = { high: 'Pilne', medium: 'Ważne', low: 'Normalne' };
 
+      const [draggedTask, setDraggedTask] = useState(null);
+      const handleDragStart = (task) => { setDraggedTask(task); };
+      const handleDrop = (statusId) => {
+        if (draggedTask && draggedTask.status !== statusId) { onUpdateTaskStatus(draggedTask.id, statusId); }
+        setDraggedTask(null);
+      };
+
       const KanbanView = () => (
         <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 16 }}>
           {PRODZIEKAN_STATUSES.map(status => {
             const statusTasks = filteredTasks.filter(t => t.status === status.id);
             return (
-              <div key={status.id} style={{ minWidth: 280, maxWidth: 320, flexShrink: 0, background: t.bgAlt, borderRadius: 14, padding: 16, minHeight: 400 }}>
+              <div key={status.id} className="kanban-column" onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }} onDragLeave={e => e.currentTarget.classList.remove('drag-over')} onDrop={e => { e.currentTarget.classList.remove('drag-over'); handleDrop(status.id); }} style={{ minWidth: 280, maxWidth: 320, flexShrink: 0, background: t.bgAlt, borderRadius: 14, padding: 16, minHeight: 400 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, paddingBottom: 12, borderBottom: `2px solid ${status.color}` }}>
                   <div style={{ width: 10, height: 10, borderRadius: '50%', background: status.color }} />
                   <span style={{ fontWeight: 600, color: t.text }}>{status.label}</span>
@@ -814,7 +910,7 @@
                     const cat = PRODZIEKAN_CATEGORIES.find(c => c.id === task.category);
                     const isOverdue = task.status !== 'done' && task.dueDate && isPast(task.dueDate);
                     return (
-                      <Card key={task.id} className={`card-hover priority-${task.priority || 'low'}`} style={{ padding: 14, cursor: 'pointer', borderColor: isOverdue ? t.danger : t.border }} onClick={() => onEditTask(task)}>
+                      <Card key={task.id} className={`card-hover kanban-card priority-${task.priority || 'low'}`} draggable onDragStart={() => handleDragStart(task)} style={{ padding: 14, borderColor: isOverdue ? t.danger : t.border }} onClick={() => onEditTask(task)}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                           <span>{cat?.icon || '📌'}</span>
                           <span style={{ fontSize: 12, color: cat?.color || t.textDim }}>{cat?.label || 'Inne'}</span>
@@ -1111,12 +1207,209 @@
                   const last = s.meetings?.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
                   const stage = stages.find(st => st.id === s.stage);
                   return <div key={s.id} onClick={() => onStudentClick(s)} style={{ padding: 10, borderRadius: 10, marginBottom: 6, background: t.bgAlt, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 34, height: 34, borderRadius: 10, background: stage?.color + '33', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, color: stage?.color, fontSize: 12 }}>{s.name.split(' ').map(n => n[0]).join('')}</div>
+                    <div style={{ width: 34, height: 34, borderRadius: 10, background: stage?.color + '33', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, color: stage?.color, fontSize: 12, position: 'relative' }}>{s.name.split(' ').map(n => n[0]).join('')}<div className="health-dot" style={{ position:'absolute', bottom:-2, right:-2, background: getHealthColor(getStudentHealth(s, inactivityDays)) }} /></div>
                     <div style={{ flex: 1 }}><div style={{ fontWeight: 500, color: t.text, fontSize: 13 }}>{s.name}</div><div style={{ fontSize: 11, color: t.warning }}>{daysSince(last?.date)} dni bez kontaktu</div></div>
                   </div>;
                 })}
               </div>
             </Card>
+          </div>
+        </div>
+      );
+    };
+
+
+    // ==================== AI ASSISTANT ====================
+    const AIAssistant = ({ students, stages, reminders, events, semesterDates, inactivityDays }) => {
+      const t = themes[useTheme().theme];
+      const insights = useMemo(() => {
+        const result = [];
+        students.filter(s => s.stage !== 'stage7').forEach(s => {
+          const lastMeeting = s.meetings?.length ? s.meetings.sort((a,b)=>new Date(b.date)-new Date(a.date))[0] : null;
+          const days = lastMeeting ? daysSince(lastMeeting.date) : null;
+          const health = getStudentHealth(s, inactivityDays);
+          const stage = stages.find(st => st.id === s.stage);
+          if (health < 40 && days && days > inactivityDays) {
+            result.push({ type: 'warning', text: `⚠️ ${s.name} — brak kontaktu od ${days} dni (etap: ${stage?.label}). Rozważ pilny email.` });
+          }
+        });
+        if (semesterDates?.end) {
+          const daysLeft = daysUntil(semesterDates.end);
+          if (daysLeft > 0 && daysLeft <= 30) {
+            const notFinished = students.filter(s => s.stage !== 'stage7' && s.stage !== 'stage6').length;
+            if (notFinished > 0) result.push({ type: 'alert', text: `🗓️ Do końca semestru ${daysLeft} dni. ${notFinished} osób nie na etapie Recenzja/Obrona.` });
+          }
+        }
+        const stageCounts = {};
+        stages.forEach(st => stageCounts[st.id] = { count: 0, total: 0 });
+        students.filter(s => s.stage !== 'stage7').forEach(s => {
+          if (stageCounts[s.stage]) { stageCounts[s.stage].count++;
+            const entry = s.stageHistory?.filter(h => h.stageId === s.stage).sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+            if (entry) stageCounts[s.stage].total += daysSince(entry.date);
+          }
+        });
+        const bottleneck = Object.entries(stageCounts).sort((a,b)=>b[1].count-a[1].count)[0];
+        if (bottleneck && bottleneck[1].count >= 3) {
+          const st = stages.find(s => s.id === bottleneck[0]);
+          result.push({ type: 'info', text: `📊 Wąskie gardło: ${bottleneck[1].count} osób w "${st?.label}". Rozważ grupowe konsultacje.` });
+        }
+        const overdue = reminders.filter(r => !r.done && isPast(r.date)).length;
+        if (overdue > 3) result.push({ type: 'warning', text: `⏰ ${overdue} zaległych przypomnień.` });
+        return result.slice(0, 6);
+      }, [students, stages, reminders, semesterDates, inactivityDays]);
+      const typeColors = { warning: t.warning, alert: t.danger, info: t.primary, success: t.success };
+      return (
+        <div className="ai-panel glass" style={{ padding: 0 }}>
+          <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 20 }}>🤖</span>
+            <div><h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: t.text }}>Asystent AI</h3><div style={{ fontSize: 10, color: t.textDim }}>Analiza na podstawie danych</div></div>
+          </div>
+          <div style={{ padding: '0 14px 14px' }}>
+            {!insights.length ? <div style={{ padding: 16, textAlign: 'center', color: t.textDim, fontSize: 13 }}>✨ Wszystko wygląda dobrze!</div> :
+              insights.map((ins, i) => (
+                <div key={i} className="animate-in" style={{ animationDelay: `${i*0.06}s`, padding: '10px 12px', borderRadius: 10, marginBottom: 6, background: (typeColors[ins.type]||t.primary)+'12', borderLeft: `3px solid ${typeColors[ins.type]||t.primary}` }}>
+                  <div style={{ fontSize: 12, color: t.text, lineHeight: 1.5 }}>{ins.text}</div>
+                </div>
+              ))}
+          </div>
+        </div>
+      );
+    };
+
+    // ==================== BIRDS EYE VIEW ====================
+    const BirdsEyeView = ({ students, stages }) => {
+      const t = themes[useTheme().theme];
+      const sortedStages = [...stages].sort((a,b) => a.order - b.order);
+      const active = students.filter(s => s.stage !== 'stage7').sort((a,b) => {
+        return sortedStages.findIndex(st => st.id === b.stage) - sortedStages.findIndex(st => st.id === a.stage);
+      });
+      return (
+        <Card style={{ padding: 0, overflow: 'hidden' }}>
+          <div style={{ padding: '14px 18px', borderBottom: `1px solid ${t.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: t.text }}>🦅 Widok z lotu ptaka</h3>
+            <Badge color={t.primary}>{active.length} aktywnych</Badge>
+          </div>
+          <div style={{ padding: '10px 18px', display: 'flex', gap: 6, flexWrap: 'wrap', borderBottom: `1px solid ${t.border}` }}>
+            {sortedStages.map(st => <div key={st.id} style={{ display:'flex', alignItems:'center', gap:4, fontSize:10, color:t.textMuted }}><div style={{ width:10, height:10, borderRadius:3, background:st.color }}/>{st.label}</div>)}
+          </div>
+          <div style={{ padding: 14, maxHeight: 360, overflowY: 'auto' }}>
+            {active.map((s, i) => {
+              const idx = sortedStages.findIndex(st => st.id === s.stage);
+              const pct = ((idx + (s.progress||0)/100) / sortedStages.length) * 100;
+              const stage = sortedStages[idx];
+              return <div key={s.id} className="animate-in" style={{ animationDelay:`${i*0.03}s`, marginBottom:6, display:'flex', alignItems:'center', gap:10 }}>
+                <div style={{ width:85, fontSize:11, fontWeight:500, color:t.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flexShrink:0 }}>{s.name.split(' ').slice(-1)[0]}</div>
+                <div style={{ flex:1 }}><div className="progress-bar" style={{ background:t.bgAlt }}><div className="progress-bar-fill" style={{ width:`${pct}%`, background:stage?.color||t.primary }}/></div></div>
+                <div style={{ fontSize:10, color:stage?.color, fontWeight:600, width:65, textAlign:'right', flexShrink:0 }}>{stage?.label}</div>
+              </div>;
+            })}
+            {!active.length && <div style={{ padding:20, textAlign:'center', color:t.textDim }}>Brak aktywnych</div>}
+          </div>
+        </Card>
+      );
+    };
+
+    // ==================== TAG PICKER ====================
+    const TagPicker = ({ onInsertTag }) => {
+      return <div style={{ display:'flex', gap:4, flexWrap:'wrap', marginBottom:8 }}>
+        {NOTE_TAGS.map(tag => <span key={tag.id} className="tag" style={{ background:tag.color+'18', color:tag.color }} onClick={() => onInsertTag(tag.label)}>{tag.label}</span>)}
+      </div>;
+    };
+
+    // ==================== PROGRESS SLIDER ====================
+    const ProgressSlider = ({ value, onChange, color }) => {
+      const t = themes[useTheme().theme];
+      return <div style={{ marginBottom:14 }}>
+        <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
+          <label style={{ fontSize:12, fontWeight:600, color:t.textMuted }}>Postęp w etapie</label>
+          <span style={{ fontSize:12, fontWeight:700, color:color||t.primary }}>{value||0}%</span>
+        </div>
+        <input type="range" min="0" max="100" step="5" value={value||0} onChange={e => onChange(parseInt(e.target.value))} style={{ width:'100%', accentColor:color||t.primary }} />
+      </div>;
+    };
+
+    // ==================== ANALYTICS VIEW ====================
+    const AnalyticsView = ({ events, students, stages, reminders, semesterDates, archives, inactivityDays }) => {
+      const t = themes[useTheme().theme];
+      const chartRef1 = useRef(null), chartRef2 = useRef(null), chartRef3 = useRef(null);
+      const chart1 = useRef(null), chart2 = useRef(null), chart3 = useRef(null);
+
+      useEffect(() => {
+        if (!chartRef1.current) return;
+        if (chart1.current) chart1.current.destroy();
+        const ss = [...stages].sort((a,b) => a.order - b.order);
+        chart1.current = new Chart(chartRef1.current, {
+          type: 'doughnut',
+          data: { labels: ss.map(s=>s.label), datasets: [{ data: ss.map(st=>students.filter(s=>s.stage===st.id).length), backgroundColor: ss.map(s=>s.color), borderWidth:0, hoverOffset:8 }] },
+          options: { responsive:true, maintainAspectRatio:false, cutout:'65%', plugins: { legend: { position:'bottom', labels: { padding:12, font:{ family:'DM Sans', size:11 }, color:t.textMuted, usePointStyle:true, pointStyleWidth:8 } } } }
+        });
+        return () => { if (chart1.current) chart1.current.destroy(); };
+      }, [students, stages, t]);
+
+      useEffect(() => {
+        if (!chartRef2.current) return;
+        if (chart2.current) chart2.current.destroy();
+        const weeks = [];
+        for (let i = 11; i >= 0; i--) {
+          const d = new Date(); d.setDate(d.getDate() - i*7);
+          const ws = new Date(d); ws.setDate(ws.getDate() - ws.getDay() + 1);
+          const we = new Date(ws); we.setDate(we.getDate()+6);
+          weeks.push({ label: 'T'+getWeekNum(ws), events: events.filter(e => { const ed=new Date(e.start); return ed>=ws && ed<=we; }).length, meetings: students.reduce((sum,s) => sum+(s.meetings?.filter(m => { const md=new Date(m.date); return md>=ws && md<=we; }).length||0), 0) });
+        }
+        chart2.current = new Chart(chartRef2.current, {
+          type: 'line',
+          data: { labels: weeks.map(w=>w.label), datasets: [
+            { label:'Zajęcia', data:weeks.map(w=>w.events), borderColor:t.primary, backgroundColor:t.primary+'20', fill:true, tension:0.4, borderWidth:2, pointRadius:3 },
+            { label:'Spotkania', data:weeks.map(w=>w.meetings), borderColor:t.success, backgroundColor:t.success+'20', fill:true, tension:0.4, borderWidth:2, pointRadius:3 }
+          ] },
+          options: { responsive:true, maintainAspectRatio:false, scales:{ y:{beginAtZero:true, grid:{color:t.border}, ticks:{color:t.textDim, font:{family:'DM Sans',size:10}}}, x:{grid:{display:false}, ticks:{color:t.textDim, font:{family:'DM Sans',size:10}}} }, plugins:{legend:{labels:{font:{family:'DM Sans',size:11}, color:t.textMuted, usePointStyle:true}}} }
+        });
+        return () => { if (chart2.current) chart2.current.destroy(); };
+      }, [events, students, t]);
+
+      useEffect(() => {
+        if (!chartRef3.current) return;
+        if (chart3.current) chart3.current.destroy();
+        const ss = [...stages].sort((a,b)=>a.order-b.order).filter(s=>s.id!=='stage7');
+        const avgDays = ss.map(st => {
+          const rel = students.filter(s => s.stageHistory?.some(h => h.stageId === st.id));
+          if (!rel.length) return 0;
+          const total = rel.reduce((sum,s) => {
+            const entries = s.stageHistory?.filter(h=>h.stageId===st.id).sort((a,b)=>new Date(a.date)-new Date(b.date))||[];
+            if (!entries.length) return sum;
+            const exit = s.stageHistory?.find(h => stages.findIndex(x=>x.id===h.stageId) > stages.findIndex(x=>x.id===st.id));
+            return sum + (exit ? Math.floor((new Date(exit.date)-new Date(entries[0].date))/86400000) : daysSince(entries[0].date));
+          }, 0);
+          return Math.round(total/rel.length);
+        });
+        chart3.current = new Chart(chartRef3.current, {
+          type: 'bar',
+          data: { labels: ss.map(s=>s.label), datasets: [{ label:'Średnio dni', data:avgDays, backgroundColor:ss.map(s=>s.color+'88'), borderColor:ss.map(s=>s.color), borderWidth:1, borderRadius:6 }] },
+          options: { responsive:true, maintainAspectRatio:false, scales:{ y:{beginAtZero:true, grid:{color:t.border}, ticks:{color:t.textDim, font:{family:'DM Sans',size:10}}}, x:{grid:{display:false}, ticks:{color:t.textDim, font:{family:'DM Sans',size:10}}} }, plugins:{legend:{display:false}} }
+        });
+        return () => { if (chart3.current) chart3.current.destroy(); };
+      }, [students, stages, t]);
+
+      const defended = students.filter(s => s.stage === 'stage7').length;
+      const totalMeet = students.reduce((s,x) => s + (x.meetings?.length||0), 0);
+      return (
+        <div className="tab-content">
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
+            <h2 style={{ color:t.text, margin:0, display:'flex', alignItems:'center', gap:12 }}><span style={{ fontSize:28 }}>📈</span><div><div style={{ fontSize:20, fontWeight:700 }}>Analityka</div><div style={{ fontSize:13, fontWeight:400, color:t.textMuted }}>Zaawansowane statystyki</div></div></h2>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(140px, 1fr))', gap:12, marginBottom:20 }}>
+            <StatCard value={students.length} label="Osób" icon="🎓" color={t.primary} />
+            <StatCard value={`${defended} (${students.length ? Math.round(defended/students.length*100) : 0}%)`} label="Obronionych" icon="🎉" color={t.success} />
+            <StatCard value={students.length ? (totalMeet/students.length).toFixed(1) : 0} label="Śr. spotkań" icon="🤝" />
+            <StatCard value={totalMeet} label="Spotkań" icon="📋" color={t.warning} />
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(320px, 1fr))', gap:14, marginBottom:16 }}>
+            <Card style={{ padding:0 }}><div style={{ padding:'14px 18px', borderBottom:`1px solid ${t.border}` }}><h3 style={{ margin:0, fontSize:14, fontWeight:600, color:t.text }}>Rozkład etapów</h3></div><div className="chart-container" style={{ padding:14, height:250 }}><canvas ref={chartRef1}></canvas></div></Card>
+            <Card style={{ padding:0 }}><div style={{ padding:'14px 18px', borderBottom:`1px solid ${t.border}` }}><h3 style={{ margin:0, fontSize:14, fontWeight:600, color:t.text }}>Aktywność (12 tyg.)</h3></div><div className="chart-container" style={{ padding:14, height:250 }}><canvas ref={chartRef2}></canvas></div></Card>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(320px, 1fr))', gap:14 }}>
+            <Card style={{ padding:0 }}><div style={{ padding:'14px 18px', borderBottom:`1px solid ${t.border}` }}><h3 style={{ margin:0, fontSize:14, fontWeight:600, color:t.text }}>⏱️ Średni czas w etapie</h3></div><div className="chart-container" style={{ padding:14, height:250 }}><canvas ref={chartRef3}></canvas></div></Card>
+            <BirdsEyeView students={students} stages={stages} />
           </div>
         </div>
       );
@@ -1532,7 +1825,7 @@
       const delSubject = async id => { setSubjects(subjects.filter(s => s.id !== id)); setEvents(events.map(e => e.subjectId === id ? { ...e, subjectId: null } : e)); if (isFirebaseConfigured && user) await del('subjects', id); };
       const saveEvent = async evt => { const id = evt.id || genId(), data = { ...evt, id }; evt.id ? setEvents(events.map(e => e.id === evt.id ? data : e)) : setEvents([...events, data]); setShowEvent(false); setEditEvent(null); if (isFirebaseConfigured && user) await save('events', id, data); };
       const delEvent = async id => { const e = events.find(x => x.id === id); if (e?.photos) for (const u of e.photos) await delFile(u); setEvents(events.filter(x => x.id !== id)); if (isFirebaseConfigured && user) await del('events', id); };
-      const saveStudent = async stu => { const id = stu.id || genId(); const old = students.find(s => s.id === id); let hist = stu.stageHistory || []; if (old && old.stage !== stu.stage) hist = [...hist, { date: new Date(), stageId: stu.stage, fromStageId: old.stage }]; else if (!old) hist = [{ date: new Date(), stageId: stu.stage }]; const data = { ...stu, id, meetings: stu.meetings || [], stageHistory: hist }; stu.id ? setStudents(students.map(s => s.id === stu.id ? data : s)) : setStudents([...students, data]); setShowStudent(false); setEditStudent(null); if (isFirebaseConfigured && user) await save('students', id, data); };
+      const saveStudent = async stu => { const id = stu.id || genId(); const old = students.find(s => s.id === id); let hist = stu.stageHistory || []; if (old && old.stage !== stu.stage) { hist = [...hist, { date: new Date(), stageId: stu.stage, fromStageId: old.stage }]; if (stu.stage === 'stage7' && old.stage !== 'stage7') triggerConfetti(); } else if (!old) hist = [{ date: new Date(), stageId: stu.stage }]; const data = { ...stu, id, meetings: stu.meetings || [], stageHistory: hist }; stu.id ? setStudents(students.map(s => s.id === stu.id ? data : s)) : setStudents([...students, data]); setShowStudent(false); setEditStudent(null); if (isFirebaseConfigured && user) await save('students', id, data); };
       const delStudent = async id => { setStudents(students.filter(s => s.id !== id)); setReminders(reminders.filter(r => r.studentId !== id)); if (isFirebaseConfigured && user) await del('students', id); };
       const addMeeting = async (sid, meeting) => { const s = students.find(x => x.id === sid); if (!s) return; const m = { ...meeting, id: genId() }, data = { ...s, meetings: [...(s.meetings || []), m] }; setStudents(students.map(x => x.id === sid ? data : x)); setShowMeeting(false); setMeetingStudent(null); if (isFirebaseConfigured && user) await save('students', sid, data); };
       const delMeeting = async (sid, mid) => { const s = students.find(x => x.id === sid); if (!s) return; const m = s.meetings?.find(x => x.id === mid); if (m?.audioUrl) await delFile(m.audioUrl); const data = { ...s, meetings: s.meetings.filter(x => x.id !== mid) }; setStudents(students.map(x => x.id === sid ? data : x)); if (isFirebaseConfigured && user) await save('students', sid, data); };
@@ -1578,11 +1871,11 @@
       return (
         <ThemeContext.Provider value={{ theme, setTheme }}>
           <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-            <header style={{ background: t.bg, borderBottom: `1px solid ${t.border}`, padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+            <header className='glass-strong' style={{ borderBottom: `1px solid ${t.border}`, padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-                <h1 style={{ margin: 0, fontSize: 17, fontWeight: 700, background: 'linear-gradient(135deg, #6366f1, #a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>📚 Dydaktyka</h1>
+                <h1 style={{ margin: 0, fontSize: 17, fontWeight: 800, fontFamily: 'Outfit, sans-serif', background: 'linear-gradient(135deg, #818cf8, #c084fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>📚 Dydaktyka</h1>
                 <span className={`sync-indicator ${status}`}>{status === 'online' ? '☁️' : '💾'}</span>
-                <nav style={{ display: 'flex', gap: 4 }}>{[{ id: 'today', icon: '☀️', label: 'Dziś' }, { id: 'calendar', icon: '📅', label: 'Kalendarz' }, { id: 'seminar', icon: '🎓', label: 'Seminarium' }, { id: 'prodziekan', icon: '🎯', label: 'Prodziekan' }, { id: 'reminders', icon: '⏰', label: 'Przypomnienia' }, { id: 'dashboard', icon: '📊', label: 'Dashboard' }].map(tab => <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`} style={{ padding: '10px 14px', borderRadius: 10, border: 'none', background: activeTab === tab.id ? t.primary : 'transparent', color: activeTab === tab.id ? 'white' : t.textMuted, cursor: 'pointer', fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 7 }}><span style={{ fontSize: 16 }}>{tab.icon}</span><span className="hide-mobile">{tab.label}</span></button>)}</nav>
+                <nav style={{ display: 'flex', gap: 4 }}>{[{ id: 'today', icon: '☀️', label: 'Dziś' }, { id: 'calendar', icon: '📅', label: 'Kalendarz' }, { id: 'seminar', icon: '🎓', label: 'Seminarium' }, { id: 'prodziekan', icon: '🎯', label: 'Prodziekan' }, { id: 'reminders', icon: '⏰', label: 'Przypomnienia' }, { id: 'dashboard', icon: '📊', label: 'Dashboard' }, { id: 'analytics', icon: '📈', label: 'Analityka' }].map(tab => <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`} style={{ padding: '10px 14px', borderRadius: 10, border: 'none', background: activeTab === tab.id ? t.primary : 'transparent', color: activeTab === tab.id ? 'white' : t.textMuted, cursor: 'pointer', fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 7 }}><span style={{ fontSize: 16 }}>{tab.icon}</span><span className="hide-mobile">{tab.label}</span></button>)}</nav>
               </div>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                 <button onClick={() => setShowSearch(true)} style={{ padding: '8px 14px', borderRadius: 10, border: `1px solid ${t.border}`, background: t.bgAlt, color: t.textDim, cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', gap: 8, fontWeight: 500 }}>🔍 <span className="hide-mobile">Szukaj</span> <kbd style={{ background: t.border, padding: '3px 7px', borderRadius: 5, fontSize: 10, fontFamily: 'monospace' }}>Ctrl+K</kbd></button>
@@ -1593,15 +1886,16 @@
             </header>
 
             <main style={{ flex: 1, padding: 16, overflowY: 'auto' }}>
-              {activeTab === 'today' && <TodayView events={events} reminders={reminders} students={students} stages={stages} inactivityDays={inactivityDays} onEventClick={e => { setEditEvent(e); setShowEvent(true); }} onReminderClick={r => { setEditReminder(r); setShowReminder(true); }} onStudentClick={s => { setEditStudent(s); setShowStudent(true); }} />}
+              {activeTab === 'today' && <><AIAssistant students={students} stages={stages} reminders={reminders} events={events} semesterDates={semesterDates} inactivityDays={inactivityDays} /><TodayView events={events} reminders={reminders} students={students} stages={stages} inactivityDays={inactivityDays} onEventClick={e => { setEditEvent(e); setShowEvent(true); }} onReminderClick={r => { setEditReminder(r); setShowReminder(true); }} onStudentClick={s => { setEditStudent(s); setShowStudent(true); }} /></>}
               {activeTab === 'calendar' && <CalendarView view={calendarView} setView={setCalendarView} currentDate={currentDate} setCurrentDate={setCurrentDate} events={events} subjects={subjects} semesterDates={semesterDates} onEventClick={e => { setEditEvent(e); setShowEvent(true); }} onImportClick={() => setShowImport(true)} onSubjectClick={() => setShowSubject(true)} onAddEvent={() => { setEditEvent(null); setShowEvent(true); }} getSubjectById={getSubjectById} subjectFilter={subjectFilter} setSubjectFilter={setSubjectFilter} />}
               {activeTab === 'seminar' && <SeminarView students={filteredStudents} allStudents={students} search={studentSearch} setSearch={setStudentSearch} stageFilter={studentStageFilter} setStageFilter={setStudentStageFilter} stages={stages} onAddStudent={() => { setEditStudent(null); setShowStudent(true); }} onEditStudent={s => { setEditStudent(s); setShowStudent(true); }} onDeleteStudent={delStudent} onAddMeeting={s => { setMeetingStudent(s); setShowMeeting(true); }} onDeleteMeeting={delMeeting} onViewTimeline={s => { setTimelineStudent(s); setShowTimeline(true); }} onExportPDF={s => exportStudentPDF(s, stages)} onEditStages={() => setShowStages(true)} onExportCSV={() => exportCSV(students, stages)} onImportCSV={() => setShowImport(true)} onSendEmail={s => { setEmailStudent(s); setShowEmail(true); }} inactivityDays={inactivityDays} />}
               {activeTab === 'prodziekan' && <ProdziekanView tasks={prodziekanTasks} projects={projects} onAddTask={() => { setEditProdziekanTask(null); setShowProdziekanTask(true); }} onEditTask={t => { setEditProdziekanTask(t); setShowProdziekanTask(true); }} onDeleteTask={delProdziekanTask} onUpdateTaskStatus={updateProdziekanTaskStatus} onAddProject={() => { setEditProject(null); setShowProject(true); }} onEditProject={p => { setEditProject(p); setShowProject(true); }} onDeleteProject={delProject} />}
               {activeTab === 'reminders' && <RemindersView reminders={reminders} events={events} students={students} onAdd={() => { setEditReminder(null); setShowReminder(true); }} onEdit={r => { setEditReminder(r); setShowReminder(true); }} onDelete={delReminder} onToggle={toggleReminder} onOpenAutoRules={() => setShowAutoRules(true)} />}
+              {activeTab === 'analytics' && <AnalyticsView events={events} students={students} stages={stages} reminders={reminders} semesterDates={semesterDates} archives={archives} inactivityDays={inactivityDays} />}
               {activeTab === 'dashboard' && <DashboardView events={events} students={students} reminders={reminders} stages={stages} semesterDates={semesterDates} />}
             </main>
 
-            <footer style={{ textAlign: 'center', padding: '14px 18px', borderTop: `1px solid ${t.border}`, color: t.textDim, fontSize: 13 }}><strong style={{ color: t.textMuted }}>Jakub Kuś</strong> • Dydaktyka v7.0</footer>
+            <footer className='glass-strong' style={{ textAlign: 'center', padding: '14px 18px', borderTop: `1px solid ${t.border}`, color: t.textDim, fontSize: 13 }}><strong style={{ color: t.textMuted }}>Jakub Kuś</strong> • Dydaktyka v8.0</footer>
 
             <QuickActions onAction={quickAction} />
             <GlobalSearch isOpen={showSearch} onClose={() => setShowSearch(false)} events={events} students={students} reminders={reminders} stages={stages} onNav={searchNav} />
@@ -1620,7 +1914,7 @@
             <AutoRulesModal isOpen={showAutoRules} onClose={() => setShowAutoRules(false)} rules={autoRules} stages={stages} onSave={saveAutoRules} />
             <ProdziekanTaskModal isOpen={showProdziekanTask} onClose={() => { setShowProdziekanTask(false); setEditProdziekanTask(null); }} task={editProdziekanTask} projects={projects} onSave={saveProdziekanTask} />
             <ProjectModal isOpen={showProject} onClose={() => { setShowProject(false); setEditProject(null); }} project={editProject} onSave={saveProject} onDelete={delProject} />
-            <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} semesterDates={semesterDates} setSemesterDates={s => saveSettings(s, null, null)} theme={theme} setTheme={setTheme} inactivityDays={inactivityDays} setInactivityDays={d => saveSettings(null, d, null)} templates={templates} setTemplates={t => saveSettings(null, null, t)} onArchiveSemester={archiveSemester} onExportReport={() => exportSemesterPDF(students, events, stages, semesterDates)} archives={archives} onRestoreArchive={restoreArchive} onDeleteArchive={deleteArchive} syncStatus={status} />
+            <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} semesterDates={semesterDates} setSemesterDates={s => saveSettings(s, null, null)} theme={theme} setTheme={setTheme} hasOled={true} inactivityDays={inactivityDays} setInactivityDays={d => saveSettings(null, d, null)} templates={templates} setTemplates={t => saveSettings(null, null, t)} onArchiveSemester={archiveSemester} onExportReport={() => exportSemesterPDF(students, events, stages, semesterDates)} archives={archives} onRestoreArchive={restoreArchive} onDeleteArchive={deleteArchive} syncStatus={status} />
           </div>
         </ThemeContext.Provider>
       );
